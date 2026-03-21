@@ -7,6 +7,7 @@ import { getGreeting, getRandomEngagement, getCompletionPercentage, getCategoryI
 import type { Task, Mood, HealthLog, Streak } from '@/lib/types';
 import HealthRing from '@/components/health/HealthRing';
 import MoodPicker from '@/components/mood/MoodPicker';
+import TopBar from '@/components/layout/TopBar';
 import Link from 'next/link';
 
 export default function TodayPage() {
@@ -138,6 +139,9 @@ export default function TodayPage() {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ margin: '-36px -40px 24px -40px' }}>
+        <TopBar />
+      </div>
 
       {/* Random engagement banner */}
       <div className="glass-card" style={{

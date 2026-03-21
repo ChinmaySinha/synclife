@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { HealthLog, Reward, Notification } from '@/lib/types';
 import HealthRing from '@/components/health/HealthRing';
@@ -21,8 +21,9 @@ export default function ProfilePage() {
   const [rewardEmoji, setRewardEmoji] = useState('🎁');
   const [rewardCost, setRewardCost] = useState(100);
   const [saving, setSaving] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [loadingAi, setLoadingAi] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const supabase = createClient();
   const today = new Date().toISOString().split('T')[0];
 
@@ -30,9 +31,48 @@ export default function ProfilePage() {
     if (profile) {
       setName(profile.name);
       loadData();
+      
+      // SELF HEALING LOGIC: Generate invite code for legacy users
+      if (!profile.invite_code) {
+        generateInviteCode();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
+
+  const generateInviteCode = async () => {
+    if (!profile) return;
+    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    await supabase.from('profiles').update({ invite_code: newCode }).eq('id', profile.id);
+    await refreshProfile();
+  };
+
+  const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !profile) return;
+    const file = e.target.files[0];
+    setUploading(true);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${profile.id}-${Math.random()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+      
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', profile.id);
+      await refreshProfile();
+    } catch (err: any) {
+      alert(`Error uploading avatar: ${err.message}. Did you create the public 'avatars' storage bucket?`);
+    }
+    
+    setUploading(false);
+  };
 
   const loadData = async () => {
     if (!profile) return;
@@ -54,6 +94,7 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
+  // Rest of state management...
   const saveHealth = async () => {
     if (!profile) return;
     await supabase.from('health_logs').upsert({
@@ -95,159 +136,230 @@ export default function ProfilePage() {
     loadData();
   };
 
-  const fetchAiSuggestions = async () => {
-    setLoadingAi(true);
-    try {
-      const res = await fetch('/api/ai/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          health: { water: health?.water_ml || 0, sleep: health?.sleep_hours || 0, steps: health?.steps || 0 },
-          taskCount: 0,
-          mood: null,
-        }),
-      });
-      const data = await res.json();
-      if (data.suggestions) setAiSuggestions(data.suggestions);
-    } catch { setAiSuggestions(['Stay hydrated! 💧', 'Take a 5-min break 🧘', 'Great job today! 🎉']); }
-    setLoadingAi(false);
-  };
+  // Convert join date
+  const joinDate = profile?.created_at ? new Date(profile.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'Pioneer Member';
 
   return (
-    <div className="animate-fade-in">
-      <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>👤 Profile</h1>
-
+    <div className="animate-fade-in pb-10">
       <div className="dashboard-grid">
-        {/* Enhanced 'About Me' Profile Header */}
-        <div className="glass-card card-full" style={{ 
-          padding: '32px', 
+        {/*
+          THE ETHEREAL PROFESSIONAL: ABOUT ME HERO
+          StitchMCP Aesthetic integration: Deep Smoky Charcoal Background, large 150px avatar, frosted data readouts.
+        */}
+        <div className="card-full" style={{ 
+          padding: '48px 40px', 
           display: 'flex', 
-          gap: '32px',
+          gap: '40px',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(240,240,255,0.4) 100%)',
-          border: '1px solid rgba(104, 52, 235, 0.15)'
+          background: 'linear-gradient(135deg, #0e0e0e 0%, #1a1a2e 100%)',
+          borderRadius: '32px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+          color: '#fff',
+          flexWrap: 'wrap'
         }}>
-          {/* Avatar Area */}
-          <div style={{
-            minWidth: '120px', height: '120px', borderRadius: '50%', 
-            background: 'var(--gradient-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '48px', fontWeight: 800, color: 'white',
-            boxShadow: '0 8px 32px rgba(104,52,235,0.3)',
-            border: '4px solid white'
-          }}>
-            {profile?.name.charAt(0).toUpperCase()}
-          </div>
-          
-          {/* Info Area */}
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
-              <input 
-                className="input" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
-                style={{ 
-                  fontSize: '28px', 
-                  fontWeight: 800, 
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: '2px dashed var(--border-subtle)',
-                  padding: '0 0 4px 0',
-                  color: 'var(--primary)',
-                  maxWidth: '300px'
-                }} 
-              />
-              <button onClick={saveName} className="btn btn-sm btn-ghost" disabled={saving}>
-                {saving ? '⚙️' : '💾 Save'}
-              </button>
+          {/* Atmospheric Glows */}
+          <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(165,165,255,0.08) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
+          <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '80%', height: '80%', background: 'radial-gradient(circle, rgba(255,142,210,0.06) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
+
+          {/* Interactive Avatar Area */}
+          <div 
+            style={{ position: 'relative', cursor: 'pointer' }}
+            title="Upload new photo"
+            onClick={() => fileInputRef.current?.click()}
+            className="group"
+          >
+            <div style={{
+              width: '150px', 
+              height: '150px', 
+              borderRadius: '50%', 
+              background: profile?.avatar_url ? `url(${profile.avatar_url}) center/cover no-repeat` : 'var(--gradient-primary)',
+              boxShadow: '0 0 0 2px rgba(165,165,255,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: profile?.avatar_url ? '0' : '56px', fontWeight: 800, color: 'white',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {!profile?.avatar_url && profile?.name.charAt(0).toUpperCase()}
+              
+              {/* Camera Hover Overlay */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: 0, transition: 'opacity 0.2s',
+              }} className="opacity-0 hover:opacity-100">
+                {uploading ? (
+                  <span className="spinner" style={{ borderColor: 'white', borderTopColor: 'transparent' }}></span>
+                ) : (
+                  <span style={{ fontSize: '32px' }}>📷</span>
+                )}
+              </div>
             </div>
             
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontWeight: 500 }}>
-              SyncLife Member • {profile?.points || 0} Total Lifetime Points ✨
-            </p>
-
-            {/* Metric Pills */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <div style={{ padding: '6px 16px', background: 'var(--bg-glass)', borderRadius: '20px', fontSize: '13px', fontWeight: 600, border: '1px solid var(--border-subtle)' }}>
-                💕 Partner: {partner ? partner.name : <span style={{ color: 'var(--text-muted)' }}>Not connected</span>}
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              onChange={uploadAvatar} 
+            />
+          </div>
+          
+          {/* Main Info Area */}
+          <div style={{ flex: 1, zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <input 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  style={{ 
+                    fontSize: '48px', 
+                    fontWeight: 900, 
+                    fontFamily: 'Outfit, sans-serif',
+                    letterSpacing: '-1px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#ffffff',
+                    maxWidth: '100%',
+                    width: `${Math.max(name.length, 5)}ch`,
+                    outline: 'none',
+                    borderBottom: '2px dashed rgba(255,255,255,0.2)',
+                  }} 
+                />
+                <button onClick={saveName} className="btn btn-sm btn-ghost" style={{ color: '#a5a5ff' }} disabled={saving}>
+                  {saving ? '⚙️' : '💾 Save'}
+                </button>
               </div>
-              <div style={{ padding: '6px 16px', background: 'rgba(236,72,153,0.1)', color: '#ec4899', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(236,72,153,0.2)' }}>
-                🎟️ Invite Code: {profile?.invite_code || '---'}
+              <p style={{ color: '#adaaaa', fontSize: '16px', fontWeight: 500, letterSpacing: '0.5px' }}>
+                SyncLife Member • Joined {joinDate}
+              </p>
+            </div>
+
+            {/* Frosted Glass Readouts */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ 
+                padding: '12px 24px', 
+                background: 'rgba(255,255,255,0.05)', 
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px', 
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}>
+                <div style={{ fontSize: '12px', color: '#adaaaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Lifetime Points</div>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: '#a5a5ff' }}>{profile?.points || 0} ✨</div>
+              </div>
+
+              <div style={{ 
+                padding: '12px 24px', 
+                background: 'rgba(255,255,255,0.05)', 
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px', 
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}>
+                <div style={{ fontSize: '12px', color: '#adaaaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Partner Status</div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: partner ? '#ff8ed2' : '#ffffff' }}>
+                  {partner ? partner.name : 'Not connected'}
+                </div>
+              </div>
+
+              <div style={{ 
+                padding: '12px 24px', 
+                background: 'rgba(165,165,255,0.1)', 
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px', 
+                border: '1px solid rgba(165,165,255,0.3)',
+                boxShadow: '0 0 20px rgba(165,165,255,0.1)'
+              }}>
+                <div style={{ fontSize: '12px', color: '#a5a5ff', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Invite Code</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, fontFamily: 'monospace', letterSpacing: '4px', color: '#ffffff' }}>
+                  {profile?.invite_code || <span className="spinner"></span>}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Health Tracking */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>💧 Health Tracking</h3>
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <HealthRing water={health?.water_ml || 0} sleep={health?.sleep_hours || 0} steps={health?.steps || 0} size={110} />
-          </div>
-          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px' }}>
-            {[250, 500].map(ml => (
-              <button key={ml} onClick={() => addWater(ml)} className="btn btn-sm btn-secondary">💧+{ml}ml</button>
-            ))}
-          </div>
-          <button onClick={() => setShowHealthLog(true)} className="btn btn-sm btn-secondary" style={{ width: '100%' }}>📝 Log Details</button>
-        </div>
-
-        {/* Notifications */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>🔔 Notifications ({notifications.length})</h3>
-          {notifications.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>All caught up! ✨</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
-              {notifications.map(n => (
-                <div key={n.id} onClick={() => markNotificationRead(n.id)} style={{
-                  padding: '10px 12px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer', border: '1px solid var(--border-subtle)', fontSize: '13px',
-                }}>
-                  <strong>{n.title}</strong>
-                  <p style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>{n.body}</p>
-                </div>
+        {/* Existing Widgets */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', gridColumn: '1 / -1' }}>
+          
+          {/* Health Tracking */}
+          <div className="glass-card" style={{ padding: '32px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)' }}>💧 Daily Health</h3>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <HealthRing water={health?.water_ml || 0} sleep={health?.sleep_hours || 0} steps={health?.steps || 0} size={150} />
+            </div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
+              {[250, 500].map(ml => (
+                <button key={ml} onClick={() => addWater(ml)} className="btn btn-sm" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-subtle)' }}>
+                  💧 +{ml}ml
+                </button>
               ))}
             </div>
-          )}
-        </div>
+            <button onClick={() => setShowHealthLog(true)} className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>📝 Log Details</button>
+          </div>
 
-        {/* AI Suggestions */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>🧠 AI Suggestions</h3>
-          {aiSuggestions.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {aiSuggestions.map((s, i) => <div key={i} className="report-insight">{s}</div>)}
-            </div>
-          ) : (
-            <button onClick={fetchAiSuggestions} className="btn btn-primary btn-sm" style={{ width: '100%' }} disabled={loadingAi}>
-              {loadingAi ? 'Thinking...' : '✨ Get AI Suggestions'}
-            </button>
-          )}
+          {/* Notifications */}
+          <div className="glass-card" style={{ padding: '32px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)' }}>🔔 Notifications</h3>
+            {notifications.length === 0 ? (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-glass)', borderRadius: '16px', padding: '40px' }}>
+                <span style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }}>✨</span>
+                You're all caught up!
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+                {notifications.map(n => (
+                  <div key={n.id} onClick={() => markNotificationRead(n.id)} style={{
+                    padding: '16px', background: 'var(--bg-glass)', borderRadius: '16px',
+                    cursor: 'pointer', border: '1px solid var(--border-subtle)',
+                    transition: 'all 0.2s ease',
+                  }} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <strong style={{ fontSize: '15px' }}>{n.title}</strong>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '14px', lineHeight: 1.4 }}>{n.body}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Rewards */}
-        <div className="glass-card card-full" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>🏆 Rewards ({profile?.points || 0} pts)</h3>
-            <button onClick={() => setShowRewardForm(true)} className="btn btn-sm btn-primary">+ New</button>
+        <div className="glass-card card-full" style={{ padding: '32px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>🏆 Rewards Market</h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>You have {profile?.points || 0} points to spend</p>
+            </div>
+            <button onClick={() => setShowRewardForm(true)} className="btn btn-primary">+ Create Reward</button>
           </div>
+          
           {rewards.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Create custom rewards to motivate yourself!</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '40px', background: 'var(--bg-glass)', borderRadius: '16px' }}>
+              Create custom rewards to motivate yourself!
+            </p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
               {rewards.map(r => (
-                <div key={r.id} className="glass-card" style={{ padding: '16px', textAlign: 'center', opacity: r.is_redeemed ? 0.5 : 1 }}>
-                  <span style={{ fontSize: '28px' }}>{r.emoji}</span>
-                  <p style={{ fontSize: '14px', fontWeight: 500, marginTop: '8px' }}>{r.title}</p>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{r.points_cost} pts</p>
+                <div key={r.id} className="glass-card" style={{ 
+                  padding: '24px', textAlign: 'center', 
+                  opacity: r.is_redeemed ? 0.5 : 1,
+                  background: 'var(--bg-glass)'
+                }}>
+                  <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>{r.emoji}</span>
+                  <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{r.title}</p>
+                  <p style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 600, marginBottom: '16px' }}>{r.points_cost} pts</p>
                   {!r.is_redeemed && (
-                    <button onClick={() => redeemReward(r)} className="btn btn-sm btn-secondary" style={{ marginTop: '8px' }}
+                    <button onClick={() => redeemReward(r)} className="btn btn-sm btn-secondary" style={{ width: '100%' }}
                       disabled={(profile?.points || 0) < r.points_cost}>
                       Redeem
                     </button>
                   )}
-                  {r.is_redeemed && <p style={{ fontSize: '11px', color: 'var(--accent-green)', marginTop: '8px' }}>✓ Redeemed</p>}
+                  {r.is_redeemed && <p style={{ fontSize: '13px', color: 'var(--accent-green)', fontWeight: 600 }}>✓ Redeemed</p>}
                 </div>
               ))}
             </div>
@@ -255,11 +367,11 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Health Log Modal */}
+      {/* Modals remain structurally mostly same, standardizing borders */}
       {showHealthLog && (
         <div className="modal-overlay" onClick={() => setShowHealthLog(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>📝 Log Health</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)' }}>📝 Log Health</h3>
             <div className="form-group">
               <label>💧 Water (ml)</label>
               <input className="input" type="number" value={water} onChange={e => setWater(Number(e.target.value))} />
@@ -272,24 +384,23 @@ export default function ProfilePage() {
               <label>👟 Steps</label>
               <input className="input" type="number" value={steps} onChange={e => setSteps(Number(e.target.value))} />
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={saveHealth} className="btn btn-primary" style={{ flex: 1 }}>Save</button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={saveHealth} className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Save</button>
               <button onClick={() => setShowHealthLog(false)} className="btn btn-secondary">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Reward Form Modal */}
       {showRewardForm && (
         <div className="modal-overlay" onClick={() => setShowRewardForm(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>🏆 Create Reward</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)' }}>🏆 Create Reward</h3>
             <div className="form-group">
               <label>Title</label>
               <input className="input" placeholder="Coffee treat ☕" value={rewardTitle} onChange={e => setRewardTitle(e.target.value)} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className="form-group">
                 <label>Emoji</label>
                 <select className="input select" value={rewardEmoji} onChange={e => setRewardEmoji(e.target.value)}>
@@ -301,13 +412,19 @@ export default function ProfilePage() {
                 <input className="input" type="number" min="10" step="10" value={rewardCost} onChange={e => setRewardCost(Number(e.target.value))} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={createReward} className="btn btn-primary" style={{ flex: 1 }}>Create</button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={createReward} className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Create</button>
               <button onClick={() => setShowRewardForm(false)} className="btn btn-secondary">Cancel</button>
             </div>
           </div>
         </div>
       )}
+      
+      {/* Dynamic CSS for hover states */}
+      <style key="profile-css" dangerouslySetInnerHTML={{__html: `
+        .hover\\:opacity-100:hover { opacity: 1 !important; }
+        .group:hover .hover\\:opacity-100 { opacity: 1 !important; }
+      `}} />
     </div>
   );
 }

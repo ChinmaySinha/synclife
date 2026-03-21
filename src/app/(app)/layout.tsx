@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar, MobileNav } from '@/components/layout/Sidebar';
 import Onboarding from '@/components/onboarding/Onboarding';
-import TopBar from '@/components/layout/TopBar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { loading, profile, refreshProfile } = useAuth();
@@ -44,11 +43,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-layout">
       <Sidebar />
-      <main className="main-content" style={{ padding: 0 }}>
-        <TopBar />
-        <div style={{ padding: '36px 40px', maxWidth: '1200px', margin: '0 auto' }}>
-          {children}
-        </div>
+      <main className="main-content">
+        {children}
       </main>
       <MobileNav />
     </div>

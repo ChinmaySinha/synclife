@@ -150,20 +150,35 @@ export default function PartnerPage() {
   // Not paired yet — show invite system
   if (!partner) {
     return (
-      <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '40px auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '40px auto', paddingBottom: '40px' }}>
+        <div className="card-full" style={{ 
+          padding: '48px 40px', 
+          background: 'linear-gradient(135deg, #0e0e0e 0%, #1a1a2e 100%)',
+          borderRadius: '32px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+          color: '#fff',
+          textAlign: 'center',
+          marginBottom: '40px'
+        }}>
+          {/* Atmospheric Glows */}
+          <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
+          
           <div style={{ 
             fontSize: '72px', 
             marginBottom: '24px', 
             animation: 'pulse 2s infinite',
-            textShadow: '0 0 40px rgba(236,72,153,0.4)'
+            textShadow: '0 0 40px rgba(236,72,153,0.4)',
+            position: 'relative', zIndex: 1
           }}>💕</div>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          
+          <h1 style={{ position: 'relative', zIndex: 1, fontSize: '32px', fontWeight: 900, marginBottom: '16px', fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.5px' }}>
             Find Your Sync Partner
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.5 }}>
+          <p style={{ position: 'relative', zIndex: 1, color: '#adaaaa', fontSize: '16px', lineHeight: 1.6 }}>
             To sync tasks, moods, and habits, you need to connect your accounts. <br/>
-            Share your unique code, or enter your partner's code below!
+            Share your unique code, or enter your partner's code below.
           </p>
         </div>
 
@@ -173,34 +188,36 @@ export default function PartnerPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Option 1: Share YOUR code */}
-          <div className="glass-card" style={{ 
-            padding: '32px', 
+          <div style={{ 
+            padding: '36px', 
             textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(236,72,153,0.05) 0%, rgba(104,52,235,0.05) 100%)',
-            border: '2px solid rgba(236,72,153,0.2)'
+            background: 'rgba(255,255,255,0.02)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.05)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
           }}>
-            <h3 style={{ fontSize: '16px', color: 'var(--primary)', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <h3 style={{ fontSize: '14px', color: '#a5a5ff', marginBottom: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px' }}>
               Step 1: Share Your Code
             </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '24px' }}>
               Send this secure code to your partner so they can link with you.
             </p>
             
             <div style={{
-              fontSize: '42px', 
+              fontSize: '48px', 
               fontWeight: 900, 
               fontFamily: 'Outfit, monospace',
-              letterSpacing: '8px', 
+              letterSpacing: '12px', 
               color: 'var(--text-primary)',
-              background: '#fff',
-              padding: '16px 24px',
-              borderRadius: 'var(--radius-lg)',
-              border: '2px dashed var(--border-subtle)',
+              background: 'linear-gradient(135deg, rgba(165,165,255,0.1) 0%, rgba(236,72,153,0.1) 100%)',
+              padding: '20px 32px',
+              borderRadius: '20px',
+              border: '2px dashed rgba(165,165,255,0.4)',
               display: 'inline-block',
-              marginBottom: '20px',
-              boxShadow: 'var(--shadow-sm)'
+              marginBottom: '24px',
             }}>
-              {inviteCode}
+              {inviteCode || <span className="spinner"></span>}
             </div>
             
             <div>
@@ -211,27 +228,34 @@ export default function PartnerPage() {
                   setTimeout(() => setSuccess(''), 4000);
                 }}
                 className="btn btn-primary"
-                style={{ padding: '12px 32px', fontSize: '16px', borderRadius: '30px' }}
+                style={{ padding: '14px 40px', fontSize: '16px', borderRadius: '30px', fontWeight: 700 }}
               >
                 📋 Copy Code to Share
               </button>
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: 600, fontSize: '14px' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: 700, fontSize: '14px', letterSpacing: '2px' }}>
             — OR —
           </div>
 
           {/* Option 2: Enter THEIR code */}
-          <div className="glass-card" style={{ padding: '32px' }}>
-            <h3 style={{ fontSize: '16px', color: 'var(--primary)', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
+          <div style={{ 
+            padding: '36px',
+            background: 'rgba(255,255,255,0.02)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.05)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)' 
+          }}>
+            <h3 style={{ fontSize: '14px', color: '#ff8ed2', marginBottom: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}>
               Step 2: Enter Theirs
             </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', textAlign: 'center' }}>
-              Did they send you a code? Paste it here!
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '24px', textAlign: 'center' }}>
+              Did they send you a code? Paste it right here!
             </p>
             
-            <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-glass)', padding: '8px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', gap: '16px', background: 'var(--bg-glass)', padding: '12px', borderRadius: '24px', border: '1px solid var(--border-subtle)' }}>
               <input
                 className="input"
                 placeholder="Paste code here..."
@@ -240,9 +264,9 @@ export default function PartnerPage() {
                 style={{ 
                   flex: 1, 
                   textAlign: 'center', 
-                  letterSpacing: '4px', 
-                  fontWeight: 800, 
-                  fontSize: '20px',
+                  letterSpacing: '6px', 
+                  fontWeight: 900, 
+                  fontSize: '24px',
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
@@ -252,7 +276,7 @@ export default function PartnerPage() {
               <button 
                 onClick={connectPartner} 
                 className="btn btn-secondary"
-                style={{ borderRadius: 'var(--radius-md)', padding: '0 24px', fontWeight: 700 }}
+                style={{ borderRadius: '16px', padding: '0 32px', fontWeight: 800, fontSize: '16px' }}
               >
                 Connect 🔗
               </button>
@@ -266,92 +290,148 @@ export default function PartnerPage() {
 
   // Paired — show partner overview
   return (
-    <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700 }}>💕 {partner.name}</h1>
-        <button onClick={() => sendNudge()} className="btn btn-sm btn-secondary">👉 Send Nudge</button>
+    <div className="animate-fade-in pb-10">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 900, fontFamily: 'Outfit' }}>💕 {partner.name}</h1>
+        <button onClick={() => sendNudge()} className="btn btn-secondary" style={{ borderRadius: '20px', fontWeight: 700 }}>👉 Send Nudge</button>
       </div>
 
-      {success && <div className="success-message">{success}</div>}
+      {success && <div className="success-message" style={{ marginBottom: '24px' }}>{success}</div>}
 
       <div className="dashboard-grid">
-        {/* Partner Profile Card */}
-        <div className="glass-card" style={{ padding: '24px', textAlign: 'center' }}>
-          <div style={{
-            width: '64px', height: '64px', borderRadius: '50%',
-            background: 'var(--gradient-warm)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontSize: '28px', fontWeight: 700, color: 'white',
-            margin: '0 auto 12px',
-          }}>
-            {partner.name.charAt(0).toUpperCase()}
-          </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 600 }}>{partner.name}</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{partner.points} points 🏆</p>
+        {/*
+          THE ETHEREAL PROFESSIONAL: PARTNER HERO
+          StitchMCP Aesthetic integration: Deep Smoky Charcoal Background, large avatar, frosted data readouts.
+        */}
+        <div className="card-full" style={{ 
+          padding: '40px', 
+          display: 'flex', 
+          gap: '32px',
+          alignItems: 'center',
+          background: 'linear-gradient(135deg, #0e0e0e 0%, #1a1a2e 100%)',
+          borderRadius: '32px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+          color: '#fff',
+          flexWrap: 'wrap'
+        }}>
+          {/* Atmospheric Glows */}
+          <div style={{ position: 'absolute', top: '-50%', right: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(255,142,210,0.08) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
 
-          {partnerMood && (
-            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Current mood</p>
-              <span style={{ fontSize: '36px' }}>{partnerMood.mood}</span>
+          <div style={{
+            width: '120px', height: '120px', borderRadius: '50%',
+            background: partner.avatar_url ? `url(${partner.avatar_url}) center/cover no-repeat` : 'var(--gradient-warm)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: partner.avatar_url ? '0' : '48px', fontWeight: 800, color: 'white',
+            boxShadow: '0 0 0 2px rgba(255,142,210,0.3)',
+            position: 'relative', zIndex: 1
+          }}>
+            {!partner.avatar_url && partner.name.charAt(0).toUpperCase()}
+          </div>
+          
+          <div style={{ flex: 1, zIndex: 1 }}>
+            <h3 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '16px', fontFamily: 'Outfit, sans-serif' }}>{partner.name}</h3>
+            
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ 
+                padding: '12px 24px', 
+                background: 'rgba(255,255,255,0.05)', 
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px', 
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}>
+                <div style={{ fontSize: '12px', color: '#adaaaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Partner Points</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#ff8ed2' }}>{partner.points} 🏆</div>
+              </div>
+
+              {partnerMood && (
+                <div style={{ 
+                  padding: '12px 24px', 
+                  background: 'rgba(255,255,255,0.05)', 
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: '16px', 
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}>
+                  <div style={{ fontSize: '12px', color: '#adaaaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Current Mood</div>
+                  <div style={{ fontSize: '24px' }}>{partnerMood.mood}</div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Partner Health */}
-        <div className="glass-card" style={{ padding: '24px', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Health Ring</h3>
+        <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)' }}>Health Ring</h3>
           <HealthRing
             water={partnerHealth?.water_ml || 0}
             sleep={partnerHealth?.sleep_hours || 0}
             steps={partnerHealth?.steps || 0}
-            size={120}
+            size={160}
           />
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '12px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '24px', fontSize: '14px', fontWeight: 600 }}>
             <span style={{ color: 'var(--accent-secondary)' }}>💧 {((partnerHealth?.water_ml || 0) / 1000).toFixed(1)}L</span>
             <span style={{ color: 'var(--accent-primary)' }}>😴 {partnerHealth?.sleep_hours || 0}h</span>
             <span style={{ color: 'var(--accent-green)' }}>👟 {partnerHealth?.steps || 0}</span>
           </div>
         </div>
 
-        {/* Partner Tasks */}
-        <div className="glass-card card-full" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-            Shared Tasks Today ({partnerTasks.filter(t => t.is_completed).length}/{partnerTasks.length})
+        {/* Partner Tasks (Redesigned) */}
+        <div style={{ 
+            padding: '32px',
+            background: 'var(--bg-glass)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-sm)'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px', color: 'var(--primary)', display: 'flex', justifyContent: 'space-between' }}>
+            <span>Shared Tasks</span>
+            <span style={{ color: 'var(--text-muted)' }}>({partnerTasks.filter(t => t.is_completed).length}/{partnerTasks.length})</span>
           </h3>
           {partnerTasks.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.5)', borderRadius: '16px' }}>
               No shared tasks from {partner.name} today
             </p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {partnerTasks.map(task => (
-                <div key={task.id} className="glass-card" style={{ padding: '14px 18px' }}>
+                <div key={task.id} style={{ 
+                  padding: '16px 20px',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  border: task.is_completed ? '1px solid var(--accent-green)' : '1px solid var(--border-subtle)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  transition: 'all 0.2s',
+                  opacity: task.is_completed ? 0.7 : 1
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                      width: '22px', height: '22px', borderRadius: '6px',
+                      width: '24px', height: '24px', borderRadius: '8px',
                       background: task.is_completed ? 'var(--accent-green)' : 'transparent',
-                      border: task.is_completed ? 'none' : '2px solid var(--text-muted)',
+                      border: task.is_completed ? 'none' : '2px dashed var(--text-muted)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '12px', color: 'white',
+                      fontSize: '14px', color: 'white',
                     }}>
                       {task.is_completed && '✓'}
                     </div>
                     <span style={{
-                      flex: 1, fontSize: '14px',
+                      flex: 1, fontSize: '15px', fontWeight: 600,
                       textDecoration: task.is_completed ? 'line-through' : 'none',
-                      opacity: task.is_completed ? 0.6 : 1,
                     }}>
                       {getCategoryIcon(task.category)} {task.title}
                     </span>
                     <span className={`badge badge-${task.category}`}>{task.category}</span>
                   </div>
                   {/* Reactions */}
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '10px', paddingLeft: '34px' }}>
+                  <div style={{ display: 'flex', gap: '8px', justifyItems: 'center', marginTop: '12px', paddingLeft: '36px' }}>
                     {['❤️', '🔥', '😡', '👏'].map(reaction => (
                       <button
                         key={reaction}
                         className="reaction-btn"
                         onClick={() => reactToTask(task.id, reaction)}
+                        style={{ fontSize: '16px', background: 'var(--bg-off)', padding: '6px 10px', borderRadius: '12px' }}
                       >
                         {reaction}
                       </button>
@@ -360,7 +440,7 @@ export default function PartnerPage() {
                       <button
                         onClick={() => sendNudge(task.id)}
                         className="btn btn-sm btn-ghost"
-                        style={{ marginLeft: 'auto' }}
+                        style={{ marginLeft: 'auto', fontWeight: 600, color: '#ff8ed2' }}
                       >
                         👉 Nudge
                       </button>
