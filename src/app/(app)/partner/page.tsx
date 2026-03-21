@@ -150,54 +150,115 @@ export default function PartnerPage() {
   // Not paired yet — show invite system
   if (!partner) {
     return (
-      <div className="animate-fade-in" style={{ maxWidth: '500px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>💕</div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>Connect with Your Partner</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-            Share your code or enter theirs to start your journey together
+      <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{ 
+            fontSize: '72px', 
+            marginBottom: '24px', 
+            animation: 'pulse 2s infinite',
+            textShadow: '0 0 40px rgba(236,72,153,0.4)'
+          }}>💕</div>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Find Your Sync Partner
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.5 }}>
+            To sync tasks, moods, and habits, you need to connect your accounts. <br/>
+            Share your unique code, or enter your partner's code below!
           </p>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        {error && <div className="error-message" style={{ marginBottom: '24px', fontSize: '15px', fontWeight: 600 }}>{error}</div>}
+        {success && <div className="success-message" style={{ marginBottom: '24px', fontSize: '15px', fontWeight: 600 }}>{success}</div>}
 
-        {/* Your invite code */}
-        <div className="glass-card" style={{ padding: '24px', marginBottom: '20px', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            Your Invite Code
-          </h3>
-          <div style={{
-            fontSize: '28px', fontWeight: 800, fontFamily: 'Outfit',
-            letterSpacing: '4px', background: 'var(--gradient-primary)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            marginBottom: '12px',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          {/* Option 1: Share YOUR code */}
+          <div className="glass-card" style={{ 
+            padding: '32px', 
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(236,72,153,0.05) 0%, rgba(104,52,235,0.05) 100%)',
+            border: '2px solid rgba(236,72,153,0.2)'
           }}>
-            {inviteCode}
+            <h3 style={{ fontSize: '16px', color: 'var(--primary)', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Step 1: Share Your Code
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+              Send this secure code to your partner so they can link with you.
+            </p>
+            
+            <div style={{
+              fontSize: '42px', 
+              fontWeight: 900, 
+              fontFamily: 'Outfit, monospace',
+              letterSpacing: '8px', 
+              color: 'var(--text-primary)',
+              background: '#fff',
+              padding: '16px 24px',
+              borderRadius: 'var(--radius-lg)',
+              border: '2px dashed var(--border-subtle)',
+              display: 'inline-block',
+              marginBottom: '20px',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              {inviteCode}
+            </div>
+            
+            <div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteCode);
+                  setSuccess('Code copied to clipboard! Send it to your partner. 💌');
+                  setTimeout(() => setSuccess(''), 4000);
+                }}
+                className="btn btn-primary"
+                style={{ padding: '12px 32px', fontSize: '16px', borderRadius: '30px' }}
+              >
+                📋 Copy Code to Share
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => navigator.clipboard.writeText(inviteCode)}
-            className="btn btn-sm btn-secondary"
-          >
-            📋 Copy Code
-          </button>
-        </div>
 
-        {/* Enter partner's code */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px', textAlign: 'center' }}>
-            Enter Partner&apos;s Code
-          </h3>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input
-              className="input"
-              placeholder="Enter their code..."
-              value={enterCode}
-              onChange={e => setEnterCode(e.target.value)}
-              style={{ flex: 1, textAlign: 'center', letterSpacing: '2px', fontWeight: 600 }}
-            />
-            <button onClick={connectPartner} className="btn btn-primary">Connect</button>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: 600, fontSize: '14px' }}>
+            — OR —
           </div>
+
+          {/* Option 2: Enter THEIR code */}
+          <div className="glass-card" style={{ padding: '32px' }}>
+            <h3 style={{ fontSize: '16px', color: 'var(--primary)', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
+              Step 2: Enter Theirs
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', textAlign: 'center' }}>
+              Did they send you a code? Paste it here!
+            </p>
+            
+            <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-glass)', padding: '8px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+              <input
+                className="input"
+                placeholder="Paste code here..."
+                value={enterCode}
+                onChange={e => setEnterCode(e.target.value.toUpperCase())}
+                style={{ 
+                  flex: 1, 
+                  textAlign: 'center', 
+                  letterSpacing: '4px', 
+                  fontWeight: 800, 
+                  fontSize: '20px',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  textTransform: 'uppercase'
+                }}
+              />
+              <button 
+                onClick={connectPartner} 
+                className="btn btn-secondary"
+                style={{ borderRadius: 'var(--radius-md)', padding: '0 24px', fontWeight: 700 }}
+              >
+                Connect 🔗
+              </button>
+            </div>
+          </div>
+          
         </div>
       </div>
     );

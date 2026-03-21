@@ -16,6 +16,8 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showExcuse, setShowExcuse] = useState<string | null>(null);
   const [excuseText, setExcuseText] = useState('');
+  const [checkingAi, setCheckingAi] = useState(false);
+  const [aiWarning, setAiWarning] = useState<string | null>(null);
   const supabase = createClient();
 
   // Form state
@@ -56,6 +58,35 @@ export default function TasksPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile || !title.trim()) return;
+
+    if (!editingTask) {
+      // It's a new task, let's ask AI first!
+      setCheckingAi(true);
+      try {
+        const res = await fetch('/api/ai/task-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskTitle: title.trim(), currentTaskCount: tasks.length })
+        });
+        const data = await res.json();
+        
+        if (data.shouldWarn) {
+          setCheckingAi(false);
+          setAiWarning(data.message);
+          return; // Stop here and wait for user's decision
+        }
+      } catch (e) {
+        console.error("AI check failed, proceeding anyway", e);
+      }
+      setCheckingAi(false);
+    }
+    
+    await proceedWithSave();
+  };
+
+  const proceedWithSave = async () => {
+    if (!profile) return;
+    setAiWarning(null);
 
     const taskData = {
       user_id: profile.id,
@@ -151,6 +182,7 @@ export default function TasksPage() {
     setNotifyPartner(task.notify_partner);
     setIsRecurring(task.is_recurring);
     setRecurrenceRule(task.recurrence_rule || 'daily');
+    setAiWarning(null);
     setShowForm(true);
   };
 
@@ -266,7 +298,7 @@ export default function TasksPage() {
       </div>
 
       {/* Task Form Modal */}
-      {showForm && (
+      {showForm && !aiWarning && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); resetForm(); }}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
@@ -325,8 +357,8 @@ export default function TasksPage() {
               )}
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                  {editingTask ? 'Save Changes' : 'Create Task'}
+                <button type="submit" disabled={checkingAi} className="btn btn-primary" style={{ flex: 1, position: 'relative' }}>
+                  {checkingAi ? <span className="spinner"></span> : (editingTask ? 'Save Changes' : 'Create Task')}
                 </button>
                 <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="btn btn-secondary">
                   Cancel
@@ -354,6 +386,30 @@ export default function TasksPage() {
             <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
               <button onClick={submitExcuse} className="btn btn-primary" style={{ flex: 1 }}>Submit Excuse</button>
               <button onClick={() => { setShowExcuse(null); setExcuseText(''); }} className="btn btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Warning Modal */}
+      {aiWarning && (
+        <div className="modal-overlay" style={{ zIndex: 200 }} onClick={() => setAiWarning(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '12px', color: 'var(--primary)' }}>Hang on a second!</h3>
+            <p style={{ fontSize: '16px', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '24px' }}>
+              {aiWarning}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button onClick={proceedWithSave} className="btn btn-danger" style={{ fontWeight: 600 }}>
+                Add it anyway 😎
+              </button>
+              <button 
+                onClick={() => { setAiWarning(null); setShowForm(false); resetForm(); }} 
+                className="btn btn-secondary"
+              >
+                You're right, nevermind 😅
+              </button>
             </div>
           </div>
         </div>

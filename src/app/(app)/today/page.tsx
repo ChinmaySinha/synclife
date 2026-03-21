@@ -137,14 +137,7 @@ export default function TodayPage() {
   const completionPct = getCompletionPercentage(completedCount, tasks.length);
 
   return (
-    <div className="animate-fade-in">
-      {/* Greeting */}
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '4px' }}>
-          {greeting.emoji} {greeting.text}
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{greeting.subtext}</p>
-      </div>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* Random engagement banner */}
       <div className="glass-card" style={{
@@ -231,18 +224,37 @@ export default function TodayPage() {
           )}
         </div>
 
-        {/* Quick Stats */}
-        <div className="glass-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Quick Stats</h3>
-          <div className="stats-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            <div className="stat-card glass-card">
-              <div className="stat-value">{profile?.points || 0}</div>
-              <div className="stat-label">Points</div>
+        {/* Interactive Premium Quick Stats */}
+        <div className="glass-card card-full" style={{ padding: '24px', background: 'var(--gradient-soft)', border: '1px solid var(--primary-container)' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--primary-dim)' }}>✨ Your Momentum</h3>
+          <div className="stats-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            
+            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+              <div className="stat-value" style={{ fontSize: '36px' }}>{profile?.points || 0}</div>
+              <div className="stat-label">Total Points</div>
             </div>
-            <div className="stat-card glass-card">
-              <div className="stat-value">{streak?.current_count || 0}</div>
-              <div className="stat-label">Day Streak 🔥</div>
+            
+            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+              <div className="stat-value" style={{ fontSize: '36px', color: '#f97316', WebkitTextFillColor: 'unset', background: 'none' }}>
+                {streak?.current_count || 0}🔥
+              </div>
+              <div className="stat-label">Day Streak</div>
             </div>
+
+            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+              <div className="stat-value" style={{ fontSize: '36px', color: '#10b981', WebkitTextFillColor: 'unset', background: 'none' }}>
+                {completedCount}/{tasks.length}
+              </div>
+              <div className="stat-label">Tasks Done</div>
+            </div>
+
+            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+              <div className="stat-value" style={{ fontSize: '36px', color: '#0ea5e9', WebkitTextFillColor: 'unset', background: 'none' }}>
+                {((health?.water_ml || 0) / 1000).toFixed(1)}L
+              </div>
+              <div className="stat-label">Hydration</div>
+            </div>
+
           </div>
         </div>
 

@@ -118,22 +118,63 @@ export default function ProfilePage() {
       <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>👤 Profile</h1>
 
       <div className="dashboard-grid">
-        {/* Profile Card */}
-        <div className="glass-card" style={{ padding: '24px', textAlign: 'center' }}>
+        {/* Enhanced 'About Me' Profile Header */}
+        <div className="glass-card card-full" style={{ 
+          padding: '32px', 
+          display: 'flex', 
+          gap: '32px',
+          alignItems: 'center',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(240,240,255,0.4) 100%)',
+          border: '1px solid rgba(104, 52, 235, 0.15)'
+        }}>
+          {/* Avatar Area */}
           <div style={{
-            width: '72px', height: '72px', borderRadius: '50%', background: 'var(--gradient-primary)',
+            minWidth: '120px', height: '120px', borderRadius: '50%', 
+            background: 'var(--gradient-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '32px', fontWeight: 700, color: 'white', margin: '0 auto 16px',
+            fontSize: '48px', fontWeight: 800, color: 'white',
+            boxShadow: '0 8px 32px rgba(104,52,235,0.3)',
+            border: '4px solid white'
           }}>
             {profile?.name.charAt(0).toUpperCase()}
           </div>
-          <div className="form-group">
-            <input className="input" value={name} onChange={e => setName(e.target.value)} style={{ textAlign: 'center', fontWeight: 600 }} />
-          </div>
-          <button onClick={saveName} className="btn btn-sm btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Update Name'}</button>
-          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <p>Partner: {partner ? partner.name + ' 💕' : 'Not connected'}</p>
-            <p style={{ marginTop: '4px' }}>Invite code: <strong style={{ color: 'var(--accent-primary)' }}>{profile?.invite_code}</strong></p>
+          
+          {/* Info Area */}
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+              <input 
+                className="input" 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 800, 
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '2px dashed var(--border-subtle)',
+                  padding: '0 0 4px 0',
+                  color: 'var(--primary)',
+                  maxWidth: '300px'
+                }} 
+              />
+              <button onClick={saveName} className="btn btn-sm btn-ghost" disabled={saving}>
+                {saving ? '⚙️' : '💾 Save'}
+              </button>
+            </div>
+            
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontWeight: 500 }}>
+              SyncLife Member • {profile?.points || 0} Total Lifetime Points ✨
+            </p>
+
+            {/* Metric Pills */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ padding: '6px 16px', background: 'var(--bg-glass)', borderRadius: '20px', fontSize: '13px', fontWeight: 600, border: '1px solid var(--border-subtle)' }}>
+                💕 Partner: {partner ? partner.name : <span style={{ color: 'var(--text-muted)' }}>Not connected</span>}
+              </div>
+              <div style={{ padding: '6px 16px', background: 'rgba(236,72,153,0.1)', color: '#ec4899', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(236,72,153,0.2)' }}>
+                🎟️ Invite Code: {profile?.invite_code || '---'}
+              </div>
+            </div>
           </div>
         </div>
 
