@@ -55,32 +55,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        await fetchProfile(user.id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!mounted) return;
+        setUser(user);
+        if (user) {
+          await fetchProfile(user.id);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     };
 
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser) {
-          await fetchProfile(currentUser.id);
-        } else {
-          setProfile(null);
-          setPartner(null);
+        if (!mounted) return;
+        try {
+          const currentUser = session?.user ?? null;
+          setUser(currentUser);
+          if (currentUser) {
+            await fetchProfile(currentUser.id);
+          } else {
+            setProfile(null);
+            setPartner(null);
+          }
+        } catch (error) {
+          console.error('Auth state change error:', error);
+        } finally {
+          if (mounted) setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

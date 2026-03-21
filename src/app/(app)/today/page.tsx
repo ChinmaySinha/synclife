@@ -7,6 +7,7 @@ import { getGreeting, getRandomEngagement, getCompletionPercentage, getCategoryI
 import type { Task, Mood, HealthLog, Streak } from '@/lib/types';
 import HealthRing from '@/components/health/HealthRing';
 import MoodPicker from '@/components/mood/MoodPicker';
+import Link from 'next/link';
 
 export default function TodayPage() {
   const { profile, partner } = useAuth();
@@ -167,7 +168,7 @@ export default function TodayPage() {
                 {completedCount}/{tasks.length} complete · {completionPct}%
               </p>
             </div>
-            <a href="/tasks" className="btn btn-sm btn-secondary">Manage →</a>
+            <Link href="/tasks" className="btn btn-sm btn-secondary">Manage →</Link>
           </div>
 
           {/* Progress bar */}
@@ -184,7 +185,7 @@ export default function TodayPage() {
 
           {tasks.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-              No tasks yet today. <a href="/tasks" style={{ color: 'var(--accent-primary)' }}>Add some!</a>
+              No tasks yet today. <Link href="/tasks" style={{ color: 'var(--primary)' }}>Add some!</Link>
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -222,9 +223,9 @@ export default function TodayPage() {
                 </div>
               ))}
               {tasks.length > 5 && (
-                <a href="/tasks" style={{ color: 'var(--accent-primary)', fontSize: '13px', textAlign: 'center', padding: '8px' }}>
+                <Link href="/tasks" style={{ color: 'var(--primary)', fontSize: '13px', textAlign: 'center', padding: '8px', display: 'block' }}>
                   +{tasks.length - 5} more tasks →
-                </a>
+                </Link>
               )}
             </div>
           )}

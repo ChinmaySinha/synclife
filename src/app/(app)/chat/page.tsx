@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Message, ActivityFeedItem } from '@/lib/types';
+import Link from 'next/link';
 
 type TimelineItem = {
   id: string;
@@ -173,7 +174,7 @@ export default function ChatPage() {
         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
           Connect with your partner first to start chatting!
         </p>
-        <a href="/partner" className="btn btn-primary">Go to Partner Page →</a>
+        <Link href="/partner" className="btn btn-primary">Go to Partner Page →</Link>
       </div>
     );
   }
