@@ -85,6 +85,7 @@ export type Streak = {
 export type Reward = {
   id: string;
   user_id: string;
+  created_by: string | null;
   title: string;
   emoji: string;
   points_cost: number;

@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [rewardTitle, setRewardTitle] = useState('');
   const [rewardEmoji, setRewardEmoji] = useState('🎁');
   const [rewardCost, setRewardCost] = useState(100);
+  const [rewardForPartner, setRewardForPartner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hoverAvatar, setHoverAvatar] = useState(false);
@@ -77,13 +78,25 @@ export default function ProfilePage() {
 
   const loadData = async () => {
     if (!profile) return;
-    const [h, r, n] = await Promise.all([
-      supabase.from('health_logs').select('*').eq('user_id', profile.id).eq('date', today).single(),
+    // Fetch rewards for self + rewards created by self for partner
+    const rewardQueries = [
       supabase.from('rewards').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }),
+    ];
+    if (partner) {
+      rewardQueries.push(
+        supabase.from('rewards').select('*').eq('user_id', partner.id).eq('created_by', profile.id).order('created_at', { ascending: false })
+      );
+    }
+    const [h, n, ...rewardResults] = await Promise.all([
+      supabase.from('health_logs').select('*').eq('user_id', profile.id).eq('date', today).single(),
       supabase.from('notifications').select('*').eq('user_id', profile.id).eq('is_read', false).order('created_at', { ascending: false }).limit(10),
+      ...rewardQueries,
     ]);
     if (h.data) { setHealth(h.data); setWater(h.data.water_ml); setSleep(h.data.sleep_hours); setSteps(h.data.steps); }
-    if (r.data) setRewards(r.data);
+    const allRewards = rewardResults.flatMap(r => r.data || []);
+    // Deduplicate by id
+    const unique = Array.from(new Map(allRewards.map(r => [r.id, r])).values());
+    setRewards(unique);
     if (n.data) setNotifications(n.data);
   };
 
@@ -116,11 +129,21 @@ export default function ProfilePage() {
 
   const createReward = async () => {
     if (!profile || !rewardTitle.trim()) return;
+    const targetId = (rewardForPartner && partner) ? partner.id : profile.id;
     await supabase.from('rewards').insert({
-      user_id: profile.id, title: rewardTitle.trim(), emoji: rewardEmoji, points_cost: rewardCost,
+      user_id: targetId, created_by: profile.id, title: rewardTitle.trim(), emoji: rewardEmoji, points_cost: rewardCost,
     });
+    // Notify partner if reward is for them
+    if (rewardForPartner && partner) {
+      await supabase.from('notifications').insert({
+        user_id: partner.id,
+        title: 'New Reward! 🎁',
+        body: `${profile.name} created a reward for you: "${rewardTitle.trim()}" (${rewardCost} pts)`,
+        type: 'reward',
+      });
+    }
     setShowRewardForm(false);
-    setRewardTitle(''); setRewardEmoji('🎁'); setRewardCost(100);
+    setRewardTitle(''); setRewardEmoji('🎁'); setRewardCost(100); setRewardForPartner(false);
     loadData();
   };
 
@@ -128,6 +151,24 @@ export default function ProfilePage() {
     if (!profile || profile.points < reward.points_cost) return;
     await supabase.from('rewards').update({ is_redeemed: true, redeemed_at: new Date().toISOString() }).eq('id', reward.id);
     await supabase.from('profiles').update({ points: profile.points - reward.points_cost }).eq('id', profile.id);
+    // Notify the creator if it was made by partner
+    if (reward.created_by && reward.created_by !== profile.id) {
+      await supabase.from('notifications').insert({
+        user_id: reward.created_by,
+        title: 'Reward Redeemed! 🎉',
+        body: `${profile.name} redeemed "${reward.title}"!`,
+        type: 'reward',
+      });
+    }
+    // Also notify partner if reward was self-created but partner exists
+    if (reward.created_by === profile.id && partner) {
+      await supabase.from('notifications').insert({
+        user_id: partner.id,
+        title: 'Reward Redeemed! 🎉',
+        body: `${profile.name} redeemed "${reward.title}"!`,
+        type: 'reward',
+      });
+    }
     await refreshProfile();
     loadData();
   };
@@ -340,28 +381,39 @@ export default function ProfilePage() {
           
           {rewards.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '40px', background: 'var(--bg-glass)', borderRadius: '16px' }}>
-              Create custom rewards to motivate yourself!
+              Create custom rewards to motivate yourself or your partner!
             </p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-              {rewards.map(r => (
-                <div key={r.id} className="glass-card" style={{ 
-                  padding: '24px', textAlign: 'center', 
-                  opacity: r.is_redeemed ? 0.5 : 1,
-                  background: 'var(--bg-glass)'
-                }}>
-                  <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>{r.emoji}</span>
-                  <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{r.title}</p>
-                  <p style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 600, marginBottom: '16px' }}>{r.points_cost} pts</p>
-                  {!r.is_redeemed && (
-                    <button onClick={() => redeemReward(r)} className="btn btn-sm btn-secondary" style={{ width: '100%' }}
-                      disabled={(profile?.points || 0) < r.points_cost}>
-                      Redeem
-                    </button>
-                  )}
-                  {r.is_redeemed && <p style={{ fontSize: '13px', color: 'var(--accent-green)', fontWeight: 600 }}>✓ Redeemed</p>}
-                </div>
-              ))}
+              {rewards.map(r => {
+                const isForMe = r.user_id === profile?.id;
+                const isFromPartner = r.created_by !== profile?.id;
+                return (
+                  <div key={r.id} className="glass-card" style={{ 
+                    padding: '24px', textAlign: 'center', 
+                    opacity: r.is_redeemed ? 0.5 : 1,
+                    background: 'var(--bg-glass)',
+                    border: isFromPartner ? '1px solid rgba(255,142,210,0.2)' : undefined,
+                  }}>
+                    <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>{r.emoji}</span>
+                    <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{r.title}</p>
+                    <p style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 600, marginBottom: '4px' }}>{r.points_cost} pts</p>
+                    <p style={{ fontSize: '11px', color: isForMe ? 'var(--accent-green)' : 'var(--accent-pink)', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {isForMe ? (isFromPartner ? `From ${partner?.name || 'partner'}` : 'For myself') : `For ${partner?.name || 'partner'}`}
+                    </p>
+                    {!r.is_redeemed && isForMe && (
+                      <button onClick={() => redeemReward(r)} className="btn btn-sm btn-secondary" style={{ width: '100%' }}
+                        disabled={(profile?.points || 0) < r.points_cost}>
+                        Redeem
+                      </button>
+                    )}
+                    {!r.is_redeemed && !isForMe && (
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Waiting for {partner?.name}</p>
+                    )}
+                    {r.is_redeemed && <p style={{ fontSize: '13px', color: 'var(--accent-green)', fontWeight: 600 }}>✓ Redeemed</p>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -412,6 +464,12 @@ export default function ProfilePage() {
                 <input className="input" type="number" min="10" step="10" value={rewardCost} onChange={e => setRewardCost(Number(e.target.value))} />
               </div>
             </div>
+            {partner && (
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', margin: '16px 0' }}>
+                <span style={{ fontSize: '14px' }}>💕 Create for {partner.name}</span>
+                <div className={`toggle ${rewardForPartner ? 'active' : ''}`} onClick={() => setRewardForPartner(!rewardForPartner)} />
+              </label>
+            )}
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
               <button onClick={createReward} className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Create</button>
               <button onClick={() => setShowRewardForm(false)} className="btn btn-secondary">Cancel</button>

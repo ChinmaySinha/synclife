@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getCategoryIcon, getPlayfulMessage } from '@/lib/utils';
 import type { Task } from '@/lib/types';
+import BlossomTree from '@/components/tasks/BlossomTree';
 
 const categories = ['all', 'work', 'health', 'personal', 'other'] as const;
 
@@ -191,8 +192,13 @@ export default function TasksPage() {
   const filtered = filter === 'all' ? tasks : tasks.filter(t => t.category === filter);
   const incomplete = tasks.filter(t => !t.is_completed);
 
+  const completedCount = tasks.filter(t => t.is_completed).length;
+  const progress = tasks.length > 0 ? completedCount / tasks.length : 0;
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ position: 'relative', minHeight: '400px' }}>
+      {/* Blossom Tree Background */}
+      {tasks.length > 0 && <BlossomTree progress={progress} />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700 }}>📋 Tasks</h1>
