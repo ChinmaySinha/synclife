@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/types';
 
 type AuthContextType = {
@@ -21,8 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children, initialSession }: { children: ReactNode; initialSession?: Session | null }) {
+  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partner, setPartner] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,15 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (mounted) setLoading(false);
     }, 10000);
 
-    // Explicitly grab session directly on mount to violently override race conditions
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted && session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id).finally(() => setLoading(false));
-      } else {
+    if (initialSession?.user) {
+      fetchProfile(initialSession.user.id).finally(() => {
         if (mounted) setLoading(false);
-      }
-    });
+      });
+    } else {
+      if (mounted) setLoading(false);
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -114,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           console.error("Auth context error:", error);
         } finally {
-          setLoading(false);
+          if (mounted) setLoading(false);
         }
       }
     );
