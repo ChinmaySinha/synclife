@@ -29,11 +29,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient();
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    let { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+    
+    if (error && error.code === 'PGRST116') {
+      // Profile vanished or wasn't created due to past bugs. Auto-heal it!
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: { user } } = await supabase.auth.getUser();
+      const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
+      const { data: newlyCreated, error: createErr } = await supabase.from('profiles').insert({
+        id: userId,
+        name: name,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        invite_code: inviteCode,
+        points: 0,
+        show_onboarding: true,
+      }).select().single();
+
+      if (newlyCreated) {
+        data = newlyCreated;
+      } else {
+        console.error('Auto-heal profile creation failed:', createErr);
+      }
+    }
     
     if (data) {
       setProfile(data);
