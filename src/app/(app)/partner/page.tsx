@@ -391,7 +391,7 @@ export default function PartnerPage() {
             <span style={{ color: 'var(--text-muted)' }}>({partnerTasks.filter(t => t.is_completed).length}/{partnerTasks.length})</span>
           </h3>
           {partnerTasks.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.5)', borderRadius: '16px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px' }}>
               No shared tasks from {partner.name} today
             </p>
           ) : (
@@ -399,9 +399,9 @@ export default function PartnerPage() {
               {partnerTasks.map(task => (
                 <div key={task.id} style={{ 
                   padding: '16px 20px',
-                  background: '#ffffff',
+                  background: 'rgba(255,255,255,0.04)',
                   borderRadius: '16px',
-                  border: task.is_completed ? '1px solid var(--accent-green)' : '1px solid var(--border-subtle)',
+                  border: task.is_completed ? '1px solid rgba(52,211,153,0.3)' : '1px solid rgba(255,255,255,0.06)',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                   transition: 'all 0.2s',
                   opacity: task.is_completed ? 0.7 : 1
