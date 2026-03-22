@@ -49,9 +49,8 @@ export default function HealthRing({
         })}
       </svg>
       <div className="ring-label">
-        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Health</div>
         <div style={{
-          fontSize: '18px', fontWeight: 700, fontFamily: 'Outfit',
+          fontSize: '22px', fontWeight: 700, fontFamily: 'Outfit',
           background: 'var(--gradient-health)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
