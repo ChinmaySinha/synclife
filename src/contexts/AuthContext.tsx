@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Safety timeout: if auth takes too long, stop showing loading
     const authTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 8000);
+    }, 4000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {

@@ -58,29 +58,6 @@ export default function TasksPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile || !title.trim()) return;
-
-    if (!editingTask) {
-      // It's a new task, let's ask AI first!
-      setCheckingAi(true);
-      try {
-        const res = await fetch('/api/ai/task-check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskTitle: title.trim(), currentTaskCount: tasks.length })
-        });
-        const data = await res.json();
-        
-        if (data.shouldWarn) {
-          setCheckingAi(false);
-          setAiWarning(data.message);
-          return; // Stop here and wait for user's decision
-        }
-      } catch (e) {
-        console.error("AI check failed, proceeding anyway", e);
-      }
-      setCheckingAi(false);
-    }
-    
     await proceedWithSave();
   };
 
