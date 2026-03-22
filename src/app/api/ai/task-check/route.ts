@@ -15,15 +15,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Call Groq to evaluate the task addition
+    // Call Groq to evaluate the task addition (with 5s timeout)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
+      signal: controller.signal,
       body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -46,6 +50,8 @@ Do not return markdown formatting, just the JSON string.`
         response_format: { type: "json_object" }
       }),
     });
+    
+    clearTimeout(timeout);
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content;
