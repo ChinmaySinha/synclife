@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/types';
@@ -11,6 +11,7 @@ type AuthContextType = {
   partner: Profile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   partner: null,
   loading: true,
   refreshProfile: async () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children, initialSession }: { children: ReactNode; initialSession?: Session | null }) {
@@ -27,6 +29,10 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
   const [partner, setPartner] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  // Track whether we intentionally signed out to prevent false SIGNED_OUT events
+  const intentionalSignOut = useRef(false);
+  // Track whether profile was loaded from server session to prevent race conditions
+  const profileLoadedFromServer = useRef(false);
 
   const fetchProfile = async (userId: string) => {
     let { data, error } = await supabase
@@ -36,7 +42,6 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
       .single();
     
     if (error && error.code === 'PGRST116') {
-      // Profile vanished or wasn't created due to past bugs. Auto-heal it!
       const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const { data: { user } } = await supabase.auth.getUser();
       const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -54,12 +59,9 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
         data = newlyCreated;
       } else {
         console.error('Auto-heal profile creation failed:', createErr);
-        alert(`CRITICAL DATABASE ERROR: Supabase refused to create your profile.\n\nError Code: ${createErr?.code}\nMessage: ${createErr?.message}\nDetails: ${createErr?.details}\n\nPlease take a screenshot of this alert and send it to me!`);
       }
     } else if (error) {
-      // It's a different database error preventing profile load!
-      console.error('Profile fetch failed with unseen error:', error);
-      alert(`PROFILE FETCH FAILED!\n\nError Code: ${error.code}\nMessage: ${error.message}\nDetails: ${error.details}\n\nPlease screenshot this error!`);
+      console.error('Profile fetch error:', error);
     }
     
     if (data) {
@@ -72,7 +74,9 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
           .single();
         setPartner(partnerData);
       }
+      return true;
     }
+    return false;
   };
 
   const refreshProfile = async () => {
@@ -81,38 +85,76 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
     }
   };
 
+  const signOut = async () => {
+    intentionalSignOut.current = true;
+    profileLoadedFromServer.current = false;
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setPartner(null);
+    window.location.href = '/login';
+  };
+
   useEffect(() => {
     let mounted = true;
 
-    // Safety timeout
     const authTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
     }, 10000);
 
+    // If we have a server session, use it directly — this is the source of truth
     if (initialSession?.user) {
+      profileLoadedFromServer.current = true;
       fetchProfile(initialSession.user.id).finally(() => {
         if (mounted) setLoading(false);
       });
     } else {
-      if (mounted) setLoading(false);
+      // No server session — try the browser client as fallback
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (mounted && session?.user) {
+          setUser(session.user);
+          fetchProfile(session.user.id).finally(() => {
+            if (mounted) setLoading(false);
+          });
+        } else {
+          if (mounted) setLoading(false);
+        }
+      });
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted || event === 'INITIAL_SESSION') return;
-        try {
-          const currentUser = session?.user ?? null;
-          setUser(currentUser);
-          if (currentUser) {
-            await fetchProfile(currentUser.id);
-          } else {
+        if (!mounted) return;
+
+        // Skip INITIAL_SESSION — we handled it above
+        if (event === 'INITIAL_SESSION') return;
+
+        // If user explicitly signed in (e.g. after OAuth redirect on client side)
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        // If token was refreshed, update user but keep profile
+        if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setUser(session.user);
+          return;
+        }
+
+        // SIGNED_OUT: Only clear state if WE triggered it intentionally
+        // The browser client fires false SIGNED_OUT events when it can't
+        // read server-managed cookies — ignore those completely
+        if (event === 'SIGNED_OUT') {
+          if (intentionalSignOut.current) {
+            setUser(null);
             setProfile(null);
             setPartner(null);
+            if (mounted) setLoading(false);
           }
-        } catch (error) {
-          console.error("Auth context error:", error);
-        } finally {
-          if (mounted) setLoading(false);
+          // else: ignore the false sign-out from browser cookie mismatch
+          return;
         }
       }
     );
@@ -126,7 +168,7 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, partner, loading, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, partner, loading, refreshProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   );

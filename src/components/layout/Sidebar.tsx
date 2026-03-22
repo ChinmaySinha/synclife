@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/lib/supabase/client';
 
 const navItems = [
   { href: '/today', icon: '☀️', label: 'Today' },
@@ -16,14 +15,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { profile, partner } = useAuth();
-  const supabase = createClient();
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
+  const { profile, partner, signOut } = useAuth();
 
   return (
     <aside className="sidebar">
@@ -101,7 +93,7 @@ export function Sidebar() {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={signOut}
             style={{
               width: '100%',
               padding: '10px 16px',
