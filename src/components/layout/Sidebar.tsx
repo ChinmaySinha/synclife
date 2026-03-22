@@ -9,6 +9,7 @@ const navItems = [
   { href: '/tasks', icon: '📋', label: 'Tasks' },
   { href: '/chat', icon: '💬', label: 'Chat' },
   { href: '/partner', icon: '💕', label: 'Partner' },
+  { href: '/challenges', icon: '🧩', label: 'Challenges' },
   { href: '/stats', icon: '📊', label: 'Stats' },
   { href: '/profile', icon: '👤', label: 'Profile' },
 ];

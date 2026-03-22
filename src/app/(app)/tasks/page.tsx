@@ -58,6 +58,31 @@ export default function TasksPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile || !title.trim()) return;
+
+    // AI task check
+    setCheckingAi(true);
+    try {
+      const res = await fetch('/api/ai/task-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          category,
+          existingTasks: tasks,
+          mood: null,
+          healthData: null,
+        }),
+      });
+      const data = await res.json();
+      if (data.suggestion) {
+        setAiWarning(data.suggestion);
+        setCheckingAi(false);
+        return;
+      }
+    } catch {
+      // AI failed silently, proceed
+    }
+    setCheckingAi(false);
     await proceedWithSave();
   };
 
