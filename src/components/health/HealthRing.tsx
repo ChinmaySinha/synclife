@@ -40,7 +40,7 @@ export default function HealthRing({
           const offset = circumference - progress * circumference;
           return (
             <g key={i}>
-              <circle cx={center} cy={center} r={ring.radius} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={strokeWidth} strokeLinecap="round" />
+              <circle cx={center} cy={center} r={ring.radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={strokeWidth} strokeLinecap="round" />
               <circle cx={center} cy={center} r={ring.radius} fill="none" stroke={ring.color} strokeWidth={strokeWidth} strokeLinecap="round"
                 strokeDasharray={circumference} strokeDashoffset={offset} className="ring-progress"
                 style={{ filter: `drop-shadow(0 0 4px ${ring.color}30)` }} />
