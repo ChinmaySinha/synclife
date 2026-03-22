@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/types';
 
 type AuthContextType = {
@@ -23,71 +23,55 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
-export function AuthProvider({ children, initialSession }: { children: ReactNode; initialSession?: Session | null }) {
-  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [partner, setPartner] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+type AuthProviderProps = {
+  children: ReactNode;
+  initialUser?: User | null;
+  initialProfile?: Profile | null;
+  initialPartner?: Profile | null;
+};
+
+export function AuthProvider({
+  children,
+  initialUser = null,
+  initialProfile = null,
+  initialPartner = null,
+}: AuthProviderProps) {
+  // Initialize state from server-fetched data — this is the key fix
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [profile, setProfile] = useState<Profile | null>(initialProfile);
+  const [partner, setPartner] = useState<Profile | null>(initialPartner);
+  const [loading, setLoading] = useState(!initialUser);
   const supabase = createClient();
-  // Track whether we intentionally signed out to prevent false SIGNED_OUT events
   const intentionalSignOut = useRef(false);
-  // Track whether profile was loaded from server session to prevent race conditions
-  const profileLoadedFromServer = useRef(false);
 
-  const fetchProfile = async (userId: string) => {
-    let { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    if (error && error.code === 'PGRST116') {
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const { data: { user } } = await supabase.auth.getUser();
-      const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  // Fetch profile via server API route (not browser client)
+  const fetchProfileFromServer = async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/me', { credentials: 'include' });
+      if (!res.ok) return false;
 
-      const { data: newlyCreated, error: createErr } = await supabase.from('profiles').insert({
-        id: userId,
-        name: name,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        invite_code: inviteCode,
-        points: 0,
-        show_onboarding: true,
-      }).select().single();
-
-      if (newlyCreated) {
-        data = newlyCreated;
-      } else {
-        console.error('Auto-heal profile creation failed:', createErr);
+      const data = await res.json();
+      if (data.user) {
+        setUser(data.user);
       }
-    } else if (error) {
-      console.error('Profile fetch error:', error);
-    }
-    
-    if (data) {
-      setProfile(data);
-      if (data.partner_id) {
-        const { data: partnerData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.partner_id)
-          .single();
-        setPartner(partnerData);
+      if (data.profile) {
+        setProfile(data.profile);
+        setPartner(data.partner || null);
+        return true;
       }
-      return true;
+      return false;
+    } catch (e) {
+      console.error('Failed to fetch profile from server:', e);
+      return false;
     }
-    return false;
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
+    await fetchProfileFromServer();
   };
 
   const signOut = async () => {
     intentionalSignOut.current = true;
-    profileLoadedFromServer.current = false;
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
@@ -98,54 +82,49 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
   useEffect(() => {
     let mounted = true;
 
+    // Safety timeout — never stay loading forever
     const authTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 10000);
+    }, 8000);
 
-    // If we have a server session, use it directly — this is the source of truth
-    if (initialSession?.user) {
-      profileLoadedFromServer.current = true;
-      fetchProfile(initialSession.user.id).finally(() => {
+    // If we already have server data, we're good to go
+    if (initialUser && initialProfile) {
+      setLoading(false);
+    } else if (initialUser && !initialProfile) {
+      // User exists but no profile yet — fetch it
+      fetchProfileFromServer().finally(() => {
         if (mounted) setLoading(false);
       });
     } else {
-      // No server session — try the browser client as fallback
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (mounted && session?.user) {
-          setUser(session.user);
-          fetchProfile(session.user.id).finally(() => {
-            if (mounted) setLoading(false);
-          });
-        } else {
-          if (mounted) setLoading(false);
-        }
+      // No server data — try to recover session from browser client
+      fetchProfileFromServer().finally(() => {
+        if (mounted) setLoading(false);
       });
     }
 
+    // Listen for auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
 
-        // Skip INITIAL_SESSION — we handled it above
+        // Skip initial — we handled it above
         if (event === 'INITIAL_SESSION') return;
 
-        // If user explicitly signed in (e.g. after OAuth redirect on client side)
+        // User signed in (e.g. after OAuth redirect on client side)
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(session.user);
-          await fetchProfile(session.user.id);
+          await fetchProfileFromServer();
           if (mounted) setLoading(false);
           return;
         }
 
-        // If token was refreshed, update user but keep profile
+        // Token refreshed — update user but keep profile
         if (event === 'TOKEN_REFRESHED' && session?.user) {
           setUser(session.user);
           return;
         }
 
-        // SIGNED_OUT: Only clear state if WE triggered it intentionally
-        // The browser client fires false SIGNED_OUT events when it can't
-        // read server-managed cookies — ignore those completely
+        // Only clear state on intentional sign-out
         if (event === 'SIGNED_OUT') {
           if (intentionalSignOut.current) {
             setUser(null);
@@ -153,7 +132,6 @@ export function AuthProvider({ children, initialSession }: { children: ReactNode
             setPartner(null);
             if (mounted) setLoading(false);
           }
-          // else: ignore the false sign-out from browser cookie mismatch
           return;
         }
       }
