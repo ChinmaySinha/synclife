@@ -54,8 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data = newlyCreated;
       } else {
         console.error('Auto-heal profile creation failed:', createErr);
-        alert(`CRITICAL DATABASE ERROR: Supabase refused to create your profile.\n\nError Code: ${createErr?.code}\nMessage: ${createErr?.message}\nDetails: ${createErr?.details}\n\nPlease take a screenshot of this alert and send it to me so I can fix the backend!`);
+        alert(`CRITICAL DATABASE ERROR: Supabase refused to create your profile.\n\nError Code: ${createErr?.code}\nMessage: ${createErr?.message}\nDetails: ${createErr?.details}\n\nPlease take a screenshot of this alert and send it to me!`);
       }
+    } else if (error) {
+      // It's a different database error preventing profile load!
+      console.error('Profile fetch failed with unseen error:', error);
+      alert(`PROFILE FETCH FAILED!\n\nError Code: ${error.code}\nMessage: ${error.message}\nDetails: ${error.details}\n\nPlease screenshot this error!`);
     }
     
     if (data) {
