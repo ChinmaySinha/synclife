@@ -292,7 +292,22 @@ export default function PartnerPage() {
   return (
     <div className="animate-fade-in pb-10">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 900, fontFamily: 'Outfit' }}>💕 {partner.name}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden',
+            background: 'var(--surface-card)', border: '2px solid rgba(255,255,255,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            {partner.avatar_url ? (
+               <img src={partner.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+               <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {partner.name?.charAt(0).toUpperCase() || '👤'}
+               </span>
+            )}
+          </div>
+          <h1 style={{ fontSize: '32px', fontWeight: 900, fontFamily: 'Outfit', margin: 0 }}>{partner.name}</h1>
+        </div>
         <button onClick={() => sendNudge()} className="btn btn-secondary" style={{ borderRadius: '20px', fontWeight: 700 }}>👉 Send Nudge</button>
       </div>
 
