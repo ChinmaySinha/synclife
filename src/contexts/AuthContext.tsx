@@ -84,14 +84,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Safety timeout: if auth takes too long, stop showing loading
+    // Safety timeout
     const authTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
     }, 10000);
 
+    // Explicitly grab session directly on mount to violently override race conditions
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted && session?.user) {
+        setUser(session.user);
+        fetchProfile(session.user.id).finally(() => setLoading(false));
+      } else {
+        if (mounted) setLoading(false);
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
+        if (!mounted || event === 'INITIAL_SESSION') return;
         try {
           const currentUser = session?.user ?? null;
           setUser(currentUser);
@@ -102,9 +112,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setPartner(null);
           }
         } catch (error) {
-          console.error('Auth state change error:', error);
+          console.error("Auth context error:", error);
         } finally {
-          if (mounted) setLoading(false);
+          setLoading(false);
         }
       }
     );
