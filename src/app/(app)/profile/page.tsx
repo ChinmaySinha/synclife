@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [rewardCost, setRewardCost] = useState(100);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [hoverAvatar, setHoverAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const supabase = createClient();
@@ -168,7 +169,8 @@ export default function ProfilePage() {
             style={{ position: 'relative', cursor: 'pointer' }}
             title="Upload new photo"
             onClick={() => fileInputRef.current?.click()}
-            className="group"
+            onMouseEnter={() => setHoverAvatar(true)}
+            onMouseLeave={() => setHoverAvatar(false)}
           >
             <div style={{
               width: '150px', 
@@ -180,11 +182,9 @@ export default function ProfilePage() {
               fontSize: profile?.avatar_url ? '0' : '56px', fontWeight: 800, color: 'white',
               position: 'relative',
               overflow: 'hidden',
-              transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
+              transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              transform: hoverAvatar ? 'scale(1.05)' : 'scale(1)'
+            }}>
               {!profile?.avatar_url && profile?.name.charAt(0).toUpperCase()}
               
               {/* Camera Hover Overlay */}
@@ -192,8 +192,8 @@ export default function ProfilePage() {
                 position: 'absolute', inset: 0,
                 background: 'rgba(0,0,0,0.5)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                opacity: 0, transition: 'opacity 0.2s',
-              }} className="opacity-0 hover:opacity-100">
+                opacity: hoverAvatar ? 1 : 0, transition: 'opacity 0.2s',
+              }}>
                 {uploading ? (
                   <span className="spinner" style={{ borderColor: 'white', borderTopColor: 'transparent' }}></span>
                 ) : (
@@ -420,11 +420,7 @@ export default function ProfilePage() {
         </div>
       )}
       
-      {/* Dynamic CSS for hover states */}
-      <style key="profile-css" dangerouslySetInnerHTML={{__html: `
-        .hover\\:opacity-100:hover { opacity: 1 !important; }
-        .group:hover .hover\\:opacity-100 { opacity: 1 !important; }
-      `}} />
+
     </div>
   );
 }

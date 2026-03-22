@@ -233,26 +233,26 @@ export default function TodayPage() {
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--primary-dim)' }}>✨ Your Momentum</h3>
           <div className="stats-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             
-            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+            <div className="stat-card glass-card hover-lift" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="stat-value" style={{ fontSize: '36px' }}>{profile?.points || 0}</div>
               <div className="stat-label">Total Points</div>
             </div>
             
-            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+            <div className="stat-card glass-card hover-lift" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="stat-value" style={{ fontSize: '36px', color: '#f97316', WebkitTextFillColor: 'unset', background: 'none' }}>
                 {streak?.current_count || 0}🔥
               </div>
               <div className="stat-label">Day Streak</div>
             </div>
 
-            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+            <div className="stat-card glass-card hover-lift" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="stat-value" style={{ fontSize: '36px', color: '#10b981', WebkitTextFillColor: 'unset', background: 'none' }}>
                 {completedCount}/{tasks.length}
               </div>
               <div className="stat-label">Tasks Done</div>
             </div>
 
-            <div className="stat-card glass-card hover-lift" style={{ background: '#fff' }}>
+            <div className="stat-card glass-card hover-lift" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="stat-value" style={{ fontSize: '36px', color: '#0ea5e9', WebkitTextFillColor: 'unset', background: 'none' }}>
                 {((health?.water_ml || 0) / 1000).toFixed(1)}L
               </div>
