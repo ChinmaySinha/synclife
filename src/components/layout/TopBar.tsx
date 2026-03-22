@@ -18,22 +18,36 @@ const FACTS = [
 export default function TopBar() {
   const { profile } = useAuth();
   const [greeting, setGreeting] = useState('');
+  const [timeString, setTimeString] = useState('');
   const [fact, setFact] = useState('');
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    const name = profile?.name ? profile.name.split(' ')[0] : 'friend';
-    if (hour < 12) setGreeting(`Good morning, ${name}`);
-    else if (hour < 17) setGreeting(`Hey ${name}`);
-    else if (hour < 21) setGreeting(`Good evening, ${name}`);
-    else setGreeting(`Night owl, ${name}?`);
-
+    const updateTime = () => {
+      const now = new Date();
+      setTimeString(now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      const hour = now.getHours();
+      const name = profile?.name ? profile.name.split(' ')[0] : 'friend';
+      if (hour < 12) setGreeting(`Good morning, ${name}`);
+      else if (hour < 17) setGreeting(`Hey ${name}`);
+      else if (hour < 21) setGreeting(`Good evening, ${name}`);
+      else setGreeting(`Night owl, ${name}?`);
+    };
+    
+    updateTime();
     setFact(FACTS[Math.floor(Math.random() * FACTS.length)]);
+    
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
   }, [profile]);
 
   return (
     <div className="top-area">
-      <h2 className="greeting-text">{greeting} ✨</h2>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <h2 className="greeting-text">{greeting} ✨</h2>
+        <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '-2px', fontWeight: 500 }}>
+          It's {timeString}
+        </span>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div className="trivia-chip" onClick={() => setFact(FACTS[Math.floor(Math.random() * FACTS.length)])}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>

@@ -4,11 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ suggestions: [] });
+
+    const { searchParams } = new URL(request.url);
+    const clientTime = searchParams.get('time') || `${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`;
 
     const today = new Date().toISOString().split('T')[0];
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
@@ -49,7 +52,7 @@ DATA:
 - Avg sleep: ${avgSleep.toFixed(1)}h/night
 - Avg water: ${(avgWater / 1000).toFixed(1)}L/day
 - Streak: ${streak?.current_count || 0} days
-- Time of day: ${new Date().getHours()}:00
+- Time of day: ${clientTime}
 
 Rules:
 - Be specific about what to do (not vague "take care of yourself")

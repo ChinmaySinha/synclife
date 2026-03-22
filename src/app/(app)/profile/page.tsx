@@ -7,7 +7,7 @@ import type { HealthLog, Reward, Notification } from '@/lib/types';
 import HealthRing from '@/components/health/HealthRing';
 
 export default function ProfilePage() {
-  const { profile, partner, refreshProfile } = useAuth();
+  const { profile, partner, refreshProfile, signOut } = useAuth();
   const [name, setName] = useState('');
   const [health, setHealth] = useState<HealthLog | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -205,6 +205,17 @@ export default function ProfilePage() {
           <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(165,165,255,0.08) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
           <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '80%', height: '80%', background: 'radial-gradient(circle, rgba(255,142,210,0.06) 0%, transparent 60%)', pointerEvents: 'none' }}></div>
 
+          {/* Top Row for Actions (Logout) */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', zIndex: 10, marginTop: '-20px', marginBottom: '-10px' }}>
+            <button 
+              onClick={signOut} 
+              className="btn btn-sm" 
+              style={{ background: 'rgba(255,142,210,0.1)', color: '#ff8ed2', border: '1px solid rgba(255,142,210,0.2)' }}
+            >
+              🚪 Sign Out
+            </button>
+          </div>
+
           {/* Interactive Avatar Area */}
           <div 
             style={{ position: 'relative', cursor: 'pointer' }}
@@ -255,7 +266,8 @@ export default function ProfilePage() {
           {/* Main Info Area */}
           <div style={{ flex: 1, zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px', opacity: 0.6 }} title="Edit Name">✏️</span>
                 <input 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
@@ -273,11 +285,13 @@ export default function ProfilePage() {
                     borderBottom: '2px dashed rgba(255,255,255,0.2)',
                   }} 
                 />
-                <button onClick={saveName} className="btn btn-sm btn-ghost" style={{ color: '#a5a5ff' }} disabled={saving}>
-                  {saving ? '⚙️' : '💾 Save'}
-                </button>
+                {name !== profile?.name && (
+                  <button onClick={saveName} className="btn btn-sm" style={{ background: 'var(--primary)', color: '#000' }} disabled={saving}>
+                    {saving ? '⚙️' : '💾 Save'}
+                  </button>
+                )}
               </div>
-              <p style={{ color: '#adaaaa', fontSize: '16px', fontWeight: 500, letterSpacing: '0.5px' }}>
+              <p style={{ color: '#adaaaa', fontSize: '16px', fontWeight: 500, letterSpacing: '0.5px', marginTop: '8px' }}>
                 SyncLife Member • Joined {joinDate}
               </p>
             </div>

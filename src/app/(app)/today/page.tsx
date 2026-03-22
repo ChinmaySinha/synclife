@@ -54,7 +54,9 @@ export default function TodayPage() {
   const fetchAiSuggestions = async () => {
     setAiLoading(true);
     try {
-      const res = await fetch('/api/ai/suggestions');
+      const now = new Date();
+      const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const res = await fetch(`/api/ai/suggestions?time=${encodeURIComponent(timeString)}`);
       const data = await res.json();
       setAiSuggestions(data.suggestions || []);
     } catch {
