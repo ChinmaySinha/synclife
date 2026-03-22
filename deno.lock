@@ -11,12 +11,15 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@formkit/auto-animate@0.9",
         "npm:@supabase/ssr@~0.5.2",
         "npm:@supabase/supabase-js@^2.47.0",
         "npm:@tailwindcss/postcss@4",
+        "npm:@types/canvas-confetti@^1.9.0",
         "npm:@types/node@22",
         "npm:@types/react-dom@19",
         "npm:@types/react@19",
+        "npm:canvas-confetti@^1.9.4",
         "npm:date-fns@^4.1.0",
         "npm:eslint-config-next@15.1.0",
         "npm:eslint@9",

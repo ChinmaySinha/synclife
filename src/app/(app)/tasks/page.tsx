@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getCategoryIcon, getPlayfulMessage } from '@/lib/utils';
 import type { Task } from '@/lib/types';
@@ -12,6 +12,7 @@ const categories = ['all', 'work', 'health', 'personal', 'other'] as const;
 
 export default function TasksPage() {
   const { profile, partner } = useAuth();
+  const [isPending, startTransition] = useTransition();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [time, setTime] = useState(new Date());
 
@@ -238,13 +239,18 @@ export default function TasksPage() {
 
       {/* Category filters */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        {categories.map(cat => (
+        {categories.map(c => (
           <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`btn btn-sm ${filter === cat ? 'btn-primary' : 'btn-secondary'}`}
+            key={c}
+            onClick={() => startTransition(() => setFilter(c))}
+            className={`btn btn-sm ${filter === c ? 'btn-primary' : ''}`}
+            style={{ 
+              opacity: isPending && filter !== c ? 0.7 : 1,
+              background: filter === c ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+              border: 'none'
+            }}
           >
-            {cat === 'all' ? '📌 All' : `${getCategoryIcon(cat)} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+            {c.charAt(0).toUpperCase() + c.slice(1)}
           </button>
         ))}
       </div>
