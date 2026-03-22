@@ -57,23 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!mounted) return;
-        setUser(user);
-        if (user) {
-          await fetchProfile(user.id);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    getUser();
-
     // Safety timeout: if auth takes too long, stop showing loading
     const authTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
