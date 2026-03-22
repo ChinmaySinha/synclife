@@ -36,10 +36,15 @@ export default function TopBar() {
       <h2 className="greeting-text">{greeting} ✨</h2>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div className="trivia-chip" onClick={() => setFact(FACTS[Math.floor(Math.random() * FACTS.length)])}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-pink)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            💡 Did you know?
-          </span>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-pink)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              💡 Did you know?
+            </span>
+            <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>
+              Tap to flip ✨
+            </span>
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
             {fact}
           </p>
         </div>
