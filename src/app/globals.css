@@ -113,6 +113,7 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -2;
+  pointer-events: none;
   background:
     radial-gradient(ellipse 600px 600px at 15% 20%, rgba(100, 98, 236, 0.12), transparent 70%),
     radial-gradient(ellipse 500px 500px at 80% 10%, rgba(88, 230, 255, 0.08), transparent 70%),
@@ -126,6 +127,7 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(ellipse 500px 500px at 70% 40%, rgba(100, 98, 236, 0.08), transparent 70%),
     radial-gradient(ellipse 600px 600px at 20% 70%, rgba(88, 230, 255, 0.06), transparent 70%);
