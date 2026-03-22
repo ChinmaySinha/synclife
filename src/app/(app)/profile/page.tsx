@@ -5,6 +5,10 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { HealthLog, Reward, Notification } from '@/lib/types';
 import HealthRing from '@/components/health/HealthRing';
+import confetti from 'canvas-confetti';
+import SpotlightCard from '@/components/ui/SpotlightCard';
+import { useCountUp } from '@/hooks/useCountUp';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export default function ProfilePage() {
   const { profile, partner, refreshProfile, signOut } = useAuth();
@@ -12,6 +16,9 @@ export default function ProfilePage() {
   const [health, setHealth] = useState<HealthLog | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  
+  const animatedPoints = useCountUp(profile?.points || 0, 1500);
+  const [rewardsListRef] = useAutoAnimate<HTMLDivElement>();
   const [showHealthLog, setShowHealthLog] = useState(false);
   const [showRewardForm, setShowRewardForm] = useState(false);
   const [water, setWater] = useState(0);
@@ -148,9 +155,26 @@ export default function ProfilePage() {
   };
 
   const redeemReward = async (reward: Reward) => {
-    if (!profile || profile.points < reward.points_cost) return;
+    if (!profile || (profile.points || 0) < reward.points_cost) {
+      alert("Not enough points!");
+      return;
+    }
+
+    // Trigger premium brand-colored confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#8b7eff', '#ff6b9d', '#00d9ff', '#ffffff']
+    });
+
+    const newPoints = (profile.points || 0) - reward.points_cost;
+    
+    // Optimistic UI for points
+    refreshProfile(); // will eventually sync with db
+    
+    await supabase.from('profiles').update({ points: newPoints }).eq('id', profile.id);
     await supabase.from('rewards').update({ is_redeemed: true, redeemed_at: new Date().toISOString() }).eq('id', reward.id);
-    await supabase.from('profiles').update({ points: profile.points - reward.points_cost }).eq('id', profile.id);
     // Notify the creator if it was made by partner
     if (reward.created_by && reward.created_by !== profile.id) {
       await supabase.from('notifications').insert({
@@ -188,7 +212,7 @@ export default function ProfilePage() {
           THE ETHEREAL PROFESSIONAL: ABOUT ME HERO
           StitchMCP Aesthetic integration: Deep Smoky Charcoal Background, large 150px avatar, frosted data readouts.
         */}
-        <div className="card-full" style={{ 
+        <SpotlightCard className="card-full" style={{ 
           padding: '48px 40px', 
           display: 'flex', 
           gap: '40px',
@@ -306,7 +330,7 @@ export default function ProfilePage() {
                 border: '1px solid rgba(255,255,255,0.1)',
               }}>
                 <div style={{ fontSize: '12px', color: '#adaaaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Lifetime Points</div>
-                <div style={{ fontSize: '24px', fontWeight: 800, color: '#a5a5ff' }}>{profile?.points || 0} ✨</div>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: '#a5a5ff' }}>{animatedPoints} ✨</div>
               </div>
 
               <div style={{ 
@@ -337,9 +361,9 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+        </SpotlightCard>
 
-        {/* Existing Widgets */}
+        {/* Health Overview */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', gridColumn: '1 / -1' }}>
           
           {/* Health Tracking */}
@@ -398,12 +422,12 @@ export default function ProfilePage() {
               Create custom rewards to motivate yourself or your partner!
             </p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+            <div ref={rewardsListRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
               {rewards.map(r => {
                 const isForMe = r.user_id === profile?.id;
                 const isFromPartner = r.created_by !== profile?.id;
                 return (
-                  <div key={r.id} className="glass-card" style={{ 
+                  <div key={r.id} className="glass-card will-change-transform gpu-layer" style={{ 
                     padding: '24px', textAlign: 'center', 
                     opacity: r.is_redeemed ? 0.5 : 1,
                     background: 'var(--bg-glass)',

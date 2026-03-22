@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getCategoryIcon, getPlayfulMessage } from '@/lib/utils';
 import type { Task } from '@/lib/types';
 import BlossomTree from '@/components/tasks/BlossomTree';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 const categories = ['all', 'work', 'health', 'personal', 'other'] as const;
 
@@ -23,6 +24,7 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showExcuse, setShowExcuse] = useState<string | null>(null);
+  const [listRef] = useAutoAnimate<HTMLDivElement>();
   const [excuseText, setExcuseText] = useState('');
   const [checkingAi, setCheckingAi] = useState(false);
   const [aiWarning, setAiWarning] = useState<string | null>(null);
@@ -133,16 +135,28 @@ export default function TasksPage() {
   };
 
   const deleteTask = async (taskId: string) => {
-    await supabase.from('tasks').delete().eq('id', taskId);
-    loadTasks();
+    setTasks(current => current.filter(t => t.id !== taskId));
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+    if (error) loadTasks();
   };
 
   const toggleTask = async (task: Task) => {
     const newCompleted = !task.is_completed;
-    await supabase.from('tasks').update({
+    const nowStr = new Date().toISOString();
+
+    setTasks(current => current.map(t => 
+      t.id === task.id ? { ...t, is_completed: newCompleted, completed_at: newCompleted ? nowStr : null } : t
+    ));
+
+    const { error } = await supabase.from('tasks').update({
       is_completed: newCompleted,
-      completed_at: newCompleted ? new Date().toISOString() : null,
+      completed_at: newCompleted ? nowStr : null,
     }).eq('id', task.id);
+
+    if (error) {
+      loadTasks();
+      return;
+    }
 
     if (newCompleted && profile) {
       await supabase.from('profiles').update({ points: (profile.points || 0) + task.points_value }).eq('id', profile.id);
@@ -157,7 +171,6 @@ export default function TasksPage() {
         });
       }
     }
-    loadTasks();
   };
 
   const submitExcuse = async () => {
@@ -249,7 +262,7 @@ export default function TasksPage() {
       )}
 
       {/* Task list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div ref={listRef} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filtered.length === 0 ? (
           <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
             <p style={{ fontSize: '32px', marginBottom: '8px' }}>🎯</p>
@@ -257,7 +270,7 @@ export default function TasksPage() {
           </div>
         ) : (
           filtered.map(task => (
-            <div key={task.id} className="glass-card" style={{ padding: '16px 20px' }}>
+            <div key={task.id} className="glass-card will-change-transform gpu-layer" style={{ padding: '16px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div
                   onClick={() => toggleTask(task)}

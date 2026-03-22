@@ -387,6 +387,66 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(139, 126, 255, 0.12);
 }
 
+.dock-item.loader::after {
+  content: '';  
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-bottom-color: #FF3D00;
+}
+
+/* =============================================
+   HARDWARE ACCELERATION & OPTIMIZATION UTILS
+   ============================================= */
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.gpu-layer {
+  transform: translateZ(0);
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 100px; /* Optional fallback layout height */
+}
+
+/* =============================================
+   @PROPERTY SKELETON SHIMMER 
+   Offloads background-position animation to the compositor
+   ============================================= */
+
+@property --shimmer-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -100%;
+}
+
+@keyframes shimmer-sweep {
+  0% { --shimmer-x: -100%; }
+  100% { --shimmer-x: 200%; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-high) 0%,
+    var(--surface-highest) 50%,
+    var(--surface-high) 100%
+  );
+  background-size: 200% 100%;
+  background-position-x: var(--shimmer-x);
+  animation: shimmer-sweep 1.5s infinite linear;
+  border-radius: 12px;
+}
+
 .dock-item.active::after {
   content: '';
   position: absolute;
