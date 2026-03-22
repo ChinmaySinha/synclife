@@ -69,13 +69,19 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'linear-gradient(145deg, #fef3f0 0%, #f0eeff 50%, #eefaff 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '20px',
-    }}>
-      <div style={{
-        width: '100%', maxWidth: '500px', textAlign: 'center',
+    }} className="auth-layout">
+      {/* Immersive Animated Background */}
+      <div className="auth-bg">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
+      </div>
+      <div className="auth-card" style={{
+        width: '100%', maxWidth: '500px', margin: 0, textAlign: 'center',
         animation: 'slideUp 0.5s ease',
+        position: 'relative', zIndex: 10, padding: '40px 30px'
       }}>
         {/* Progress dots */}
         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '40px' }}>
@@ -107,12 +113,13 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           fontFamily: 'Outfit', fontSize: '28px', fontWeight: 800,
           marginBottom: '8px', letterSpacing: '-0.03em',
           animation: 'fadeIn 0.4s ease 0.1s both',
+          color: '#ffffff',
         }}>
           {current.title}
         </h1>
 
         <p style={{
-          fontSize: '15px', color: 'var(--text-muted)',
+          fontSize: '15px', color: '#94a3b8',
           fontWeight: 600, marginBottom: '16px',
           animation: 'fadeIn 0.4s ease 0.15s both',
         }}>
@@ -120,7 +127,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         </p>
 
         <p style={{
-          fontSize: '15px', color: 'var(--text-secondary)',
+          fontSize: '15px', color: '#e2e8f0',
           lineHeight: '1.7', maxWidth: '380px', margin: '0 auto 40px',
           animation: 'fadeIn 0.4s ease 0.2s both',
         }}>
@@ -130,16 +137,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           {step > 0 && (
-            <button onClick={() => setStep(step - 1)} className="btn btn-secondary">
+            <button onClick={() => setStep(step - 1)} className="auth-button" style={{ background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }}>
               Back
             </button>
           )}
           {isLast ? (
-            <button onClick={handleComplete} className="btn btn-primary" style={{ minWidth: '180px' }}>
+            <button onClick={handleComplete} className="auth-button" style={{ minWidth: '180px' }}>
               Let&apos;s Go! 🚀
             </button>
           ) : (
-            <button onClick={() => setStep(step + 1)} className="btn btn-primary" style={{ minWidth: '160px' }}>
+            <button onClick={() => setStep(step + 1)} className="auth-button" style={{ minWidth: '160px' }}>
               Next →
             </button>
           )}
@@ -149,8 +156,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         {!isLast && (
           <button
             onClick={handleComplete}
-            className="btn btn-ghost"
-            style={{ marginTop: '16px', fontSize: '13px' }}
+            style={{ marginTop: '16px', fontSize: '13px', color: '#94a3b8', background: 'transparent', border: 'none', cursor: 'pointer', outline: 'none' }}
           >
             Skip tour
           </button>
