@@ -12,6 +12,13 @@ const categories = ['all', 'work', 'health', 'personal', 'other'] as const;
 export default function TasksPage() {
   const { profile, partner } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [filter, setFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -199,10 +206,15 @@ export default function TasksPage() {
     <div className="animate-fade-in" style={{ position: 'relative', minHeight: '400px' }}>
       {/* Blossom Tree Background */}
       {tasks.length > 0 && <BlossomTree progress={progress} />}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>📋 Tasks</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>📋 Tasks</h1>
+            <span suppressHydrationWarning style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>
+              It's {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
+            </span>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
             {tasks.filter(t => t.is_completed).length}/{tasks.length} completed today
           </p>
         </div>

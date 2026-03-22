@@ -18,13 +18,12 @@ const FACTS = [
 export default function TopBar() {
   const { profile } = useAuth();
   const [greeting, setGreeting] = useState('');
-  const [timeString, setTimeString] = useState('');
+  const [time, setTime] = useState(new Date());
   const [fact, setFact] = useState('');
 
   useEffect(() => {
-    const updateTime = () => {
+    const updateGreeting = () => {
       const now = new Date();
-      setTimeString(now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
       const hour = now.getHours();
       const name = profile?.name ? profile.name.split(' ')[0] : 'friend';
       if (hour < 12) setGreeting(`Good morning, ${name}`);
@@ -33,10 +32,10 @@ export default function TopBar() {
       else setGreeting(`Night owl, ${name}?`);
     };
     
-    updateTime();
+    updateGreeting();
     setFact(FACTS[Math.floor(Math.random() * FACTS.length)]);
     
-    const interval = setInterval(updateTime, 60000);
+    const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, [profile]);
 
@@ -44,8 +43,8 @@ export default function TopBar() {
     <div className="top-area">
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <h2 className="greeting-text">{greeting} ✨</h2>
-        <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '-2px', fontWeight: 500 }}>
-          It's {timeString}
+        <span suppressHydrationWarning style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '-2px', fontWeight: 500 }}>
+          It's {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
