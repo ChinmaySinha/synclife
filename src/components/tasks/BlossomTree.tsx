@@ -5,30 +5,31 @@ interface BlossomTreeProps {
 }
 
 export default function BlossomTree({ progress }: BlossomTreeProps) {
-  // Blossom positions along branches (x, y, size)
+  // Blossom positions along branches — spread diagonally from bottom-right to top-left
   const blossoms = [
-    // Right branch blossoms
-    { x: 185, y: 65, s: 8 },
-    { x: 200, y: 45, s: 6 },
-    { x: 175, y: 85, s: 7 },
-    { x: 210, y: 70, s: 5 },
-    { x: 195, y: 30, s: 7 },
-    // Left branch blossoms
-    { x: 85, y: 60, s: 7 },
-    { x: 70, y: 40, s: 6 },
-    { x: 95, y: 80, s: 8 },
-    { x: 60, y: 65, s: 5 },
-    { x: 80, y: 35, s: 6 },
-    // Top blossoms
-    { x: 140, y: 25, s: 7 },
-    { x: 155, y: 15, s: 5 },
-    { x: 125, y: 20, s: 6 },
-    { x: 150, y: 50, s: 7 },
-    { x: 120, y: 55, s: 5 },
-    // Small scattered blossoms
-    { x: 165, y: 95, s: 4 },
-    { x: 105, y: 90, s: 4 },
-    { x: 145, y: 40, s: 5 },
+    // Main branch blossoms (mid-tree)
+    { x: 200, y: 260, s: 6 },
+    { x: 175, y: 230, s: 7 },
+    { x: 155, y: 200, s: 8 },
+    { x: 130, y: 175, s: 7 },
+    // Upper-left branch blossoms
+    { x: 100, y: 145, s: 7 },
+    { x: 80, y: 120, s: 8 },
+    { x: 55, y: 95, s: 6 },
+    { x: 35, y: 70, s: 7 },
+    { x: 20, y: 45, s: 5 },
+    // Upper sub-branch blossoms (going more left)
+    { x: 60, y: 75, s: 5 },
+    { x: 40, y: 55, s: 6 },
+    { x: 15, y: 30, s: 5 },
+    // Right sub-branch blossoms (branching off to the right from mid)
+    { x: 165, y: 165, s: 6 },
+    { x: 180, y: 140, s: 5 },
+    { x: 195, y: 120, s: 6 },
+    // Small sub-branch going up from trunk
+    { x: 145, y: 145, s: 5 },
+    { x: 115, y: 110, s: 6 },
+    { x: 90, y: 85, s: 5 },
   ];
 
   const visibleCount = Math.round(blossoms.length * progress);
@@ -36,101 +37,95 @@ export default function BlossomTree({ progress }: BlossomTreeProps) {
   return (
     <div style={{
       position: 'absolute',
-      right: '10px',
-      bottom: '80px',
-      width: '280px',
-      height: '320px',
-      opacity: 0.15,
+      right: '0',
+      bottom: '0',
+      width: '320px',
+      height: '420px',
+      opacity: 0.18,
       pointerEvents: 'none',
       zIndex: 0,
     }}>
-      <svg viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-        {/* Trunk */}
+      <svg viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+        {/* Main trunk — starts from bottom-right, curves diagonally to upper-left */}
         <path
-          d="M140 310 Q138 260 135 220 Q132 190 130 170 Q128 155 130 140"
-          stroke="rgba(255,182,193,0.6)"
+          d="M300 420 Q280 380 260 340 Q240 300 220 270 Q200 240 170 210 Q140 180 110 150 Q80 120 50 85 Q30 60 15 30"
+          stroke="rgba(255,182,193,0.55)"
           strokeWidth="3"
           strokeLinecap="round"
           fill="none"
         />
-        {/* Trunk slight curve */}
+        {/* Trunk shadow line for depth */}
         <path
-          d="M140 310 Q142 270 140 230 Q138 200 140 180"
-          stroke="rgba(255,182,193,0.4)"
+          d="M305 420 Q285 385 268 348 Q250 310 228 278 Q208 248 178 218 Q150 190 120 158"
+          stroke="rgba(255,182,193,0.25)"
           strokeWidth="2"
           strokeLinecap="round"
           fill="none"
         />
 
-        {/* Main right branch */}
+        {/* Right sub-branch (branches off toward upper-right from mid-trunk) */}
         <path
-          d="M135 180 Q155 150 180 120 Q195 100 210 80 Q220 65 215 45"
-          stroke="rgba(255,182,193,0.5)"
+          d="M170 210 Q185 190 195 165 Q205 145 200 120"
+          stroke="rgba(255,182,193,0.45)"
           strokeWidth="2"
           strokeLinecap="round"
           fill="none"
         />
-        {/* Right sub-branch */}
+        {/* Small twig off right branch */}
         <path
-          d="M180 120 Q190 105 200 95 Q205 85 195 70"
-          stroke="rgba(255,182,193,0.4)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Small right twig */}
-        <path
-          d="M195 100 Q200 90 210 85"
+          d="M195 165 Q205 155 210 140"
           stroke="rgba(255,182,193,0.3)"
-          strokeWidth="1"
+          strokeWidth="1.5"
           strokeLinecap="round"
           fill="none"
         />
 
-        {/* Main left branch */}
+        {/* Left sub-branch (branches further left from upper trunk) */}
         <path
-          d="M130 170 Q115 140 95 110 Q80 85 70 60 Q65 45 75 30"
-          stroke="rgba(255,182,193,0.5)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Left sub-branch */}
-        <path
-          d="M95 110 Q85 95 80 80 Q75 65 85 50"
+          d="M110 150 Q90 130 70 105 Q55 85 35 60"
           stroke="rgba(255,182,193,0.4)"
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
           fill="none"
         />
         {/* Small left twig */}
         <path
-          d="M85 95 Q75 85 65 80"
+          d="M70 105 Q55 100 40 95"
           stroke="rgba(255,182,193,0.3)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+
+        {/* Upper branch going left */}
+        <path
+          d="M50 85 Q35 65 20 45 Q10 30 5 15"
+          stroke="rgba(255,182,193,0.4)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+        {/* Tiny twig from upper branch */}
+        <path
+          d="M20 45 Q10 42 5 50"
+          stroke="rgba(255,182,193,0.25)"
           strokeWidth="1"
           strokeLinecap="round"
           fill="none"
         />
 
-        {/* Top center branch */}
+        {/* Mid branch going slightly right */}
         <path
-          d="M132 155 Q135 130 140 100 Q145 70 150 40 Q152 25 145 15"
-          stroke="rgba(255,182,193,0.5)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Top sub-branch right */}
-        <path
-          d="M143 80 Q155 60 160 45"
+          d="M140 180 Q155 160 165 140 Q170 125 168 110"
           stroke="rgba(255,182,193,0.35)"
           strokeWidth="1.5"
           strokeLinecap="round"
           fill="none"
         />
-        {/* Top sub-branch left */}
+
+        {/* Lower branch off main trunk */}
         <path
-          d="M138 90 Q125 70 120 50"
+          d="M220 270 Q235 255 245 235 Q250 220 248 200"
           stroke="rgba(255,182,193,0.35)"
           strokeWidth="1.5"
           strokeLinecap="round"
@@ -146,11 +141,11 @@ export default function BlossomTree({ progress }: BlossomTreeProps) {
             <circle cx={b.x} cy={b.y} r={b.s} fill="rgba(255,182,193,0.5)" />
             {/* Inner center */}
             <circle cx={b.x} cy={b.y} r={b.s * 0.4} fill="rgba(255,220,230,0.7)" />
-            {/* Top petal hint */}
+            {/* Top petal */}
             <circle cx={b.x} cy={b.y - b.s * 0.5} r={b.s * 0.35} fill="rgba(255,192,203,0.4)" />
-            {/* Right petal hint */}
+            {/* Right petal */}
             <circle cx={b.x + b.s * 0.45} cy={b.y + b.s * 0.2} r={b.s * 0.3} fill="rgba(255,192,203,0.35)" />
-            {/* Left petal hint */}
+            {/* Left petal */}
             <circle cx={b.x - b.s * 0.45} cy={b.y + b.s * 0.2} r={b.s * 0.3} fill="rgba(255,192,203,0.35)" />
           </g>
         ))}
