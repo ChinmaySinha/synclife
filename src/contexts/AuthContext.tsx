@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data = newlyCreated;
       } else {
         console.error('Auto-heal profile creation failed:', createErr);
+        alert(`CRITICAL DATABASE ERROR: Supabase refused to create your profile.\n\nError Code: ${createErr?.code}\nMessage: ${createErr?.message}\nDetails: ${createErr?.details}\n\nPlease take a screenshot of this alert and send it to me so I can fix the backend!`);
       }
     }
     
