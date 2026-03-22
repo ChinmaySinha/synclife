@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 const navItems = [
   { href: '/today', icon: '☀️', label: 'Today' },
@@ -15,17 +16,24 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { profile, partner } = useAuth();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <aside className="sidebar">
       {/* Logo */}
       <div style={{ marginBottom: '12px' }}>
         <h1 style={{
-          fontFamily: 'Outfit', fontSize: '28px', fontWeight: 800,
-          background: 'var(--gradient-primary)',
+          fontFamily: 'Space Grotesk', fontSize: '28px', fontWeight: 700,
+          background: 'linear-gradient(135deg, #a5a5ff 0%, #58e6ff 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          letterSpacing: '-0.03em',
+          letterSpacing: '-0.04em',
         }}>
           SyncLife
         </h1>
@@ -35,9 +43,11 @@ export function Sidebar() {
       {profile && (
         <div style={{
           padding: '14px 16px', borderRadius: 'var(--radius-xl)',
-          background: 'var(--surface-low)', marginBottom: '24px',
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          marginBottom: '24px',
         }}>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'Space Grotesk' }}>
             Welcome, {profile.name} ✨
           </p>
           {partner && (
@@ -62,31 +72,64 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* User card */}
+      {/* User card + Logout */}
       {profile && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '14px 16px', borderRadius: 'var(--radius-xl)',
-          background: 'var(--surface-low)',
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{
-            width: '40px', height: '40px', borderRadius: 'var(--radius-full)',
-            background: 'var(--gradient-primary)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontSize: '16px', fontWeight: 700, color: 'white',
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '14px 16px', borderRadius: 'var(--radius-xl)',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.06)',
           }}>
-            {profile.name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 600 }}>{profile.name}</div>
             <div style={{
-              fontSize: '12px', fontWeight: 600,
-              background: 'var(--gradient-primary)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              width: '40px', height: '40px', borderRadius: 'var(--radius-full)',
+              background: profile.avatar_url ? `url(${profile.avatar_url}) center/cover no-repeat` : 'var(--gradient-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '16px', fontWeight: 700, color: 'white',
             }}>
-              {profile.points} pts
+              {!profile.avatar_url && profile.name.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'Space Grotesk' }}>{profile.name}</div>
+              <div style={{
+                fontSize: '12px', fontWeight: 600,
+                background: 'var(--gradient-primary)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>
+                {profile.points} pts
+              </div>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              width: '100%',
+              padding: '10px 16px',
+              borderRadius: 'var(--radius-xl)',
+              background: 'rgba(255, 110, 132, 0.08)',
+              border: '1px solid rgba(255, 110, 132, 0.15)',
+              color: '#ff6e84',
+              fontSize: '13px',
+              fontWeight: 600,
+              fontFamily: 'Space Grotesk',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 110, 132, 0.15)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 110, 132, 0.08)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            🚪 Sign Out
+          </button>
         </div>
       )}
     </aside>

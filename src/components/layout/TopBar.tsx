@@ -68,9 +68,9 @@ export default function TopBar() {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '24px 40px',
-      background: 'rgba(255, 255, 255, 0.6)',
+      background: 'rgba(6, 6, 11, 0.7)',
       backdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(0,0,0,0.05)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
       position: 'sticky',
       top: 0,
       zIndex: 40,
@@ -79,7 +79,7 @@ export default function TopBar() {
       
       {/* Left side spacer - to keep middle center-aligned if needed, or put logo/breadcrumb here */}
       <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'Outfit' }}>SyncLife</h2>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)', fontFamily: 'Space Grotesk' }}>SyncLife</h2>
       </div>
 
       {/* Middle Greeting */}

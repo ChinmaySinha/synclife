@@ -74,6 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getUser();
 
+    // Safety timeout: if auth takes too long, stop showing loading
+    const authTimeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 8000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -96,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(authTimeout);
       subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

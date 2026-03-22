@@ -13,19 +13,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(145deg, #fef3f0 0%, #f0eeff 50%, #eefaff 100%)',
+        background: '#06060b', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ position: 'absolute', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(100,98,236,0.15), transparent 70%)', top: '10%', left: '15%', filter: 'blur(60px)' }}></div>
+        <div style={{ position: 'absolute', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(88,230,255,0.1), transparent 70%)', bottom: '15%', right: '20%', filter: 'blur(60px)' }}></div>
+        <div style={{ textAlign: 'center', zIndex: 1 }}>
           <h1 style={{
-            fontFamily: 'Outfit, sans-serif', fontSize: '36px', fontWeight: 800,
-            background: 'var(--gradient-primary)',
+            fontFamily: 'Space Grotesk, sans-serif', fontSize: '42px', fontWeight: 700,
+            background: 'linear-gradient(135deg, #a5a5ff 0%, #58e6ff 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            marginBottom: '12px',
+            marginBottom: '16px', letterSpacing: '-0.03em',
           }}>
             SyncLife
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading your world...</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <div style={{ width: '18px', height: '18px', border: '2px solid rgba(165,165,255,0.3)', borderTopColor: '#a5a5ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+            <p style={{ color: '#777575', fontSize: '14px', fontFamily: 'Space Grotesk' }}>Loading your world...</p>
+          </div>
         </div>
+        <style dangerouslySetInnerHTML={{__html: '@keyframes spin { to { transform: rotate(360deg); } }'}} />
       </div>
     );
   }

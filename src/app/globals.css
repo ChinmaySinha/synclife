@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 /* =============================================
@@ -97,18 +97,52 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--surface-low);
+  background: #06060b;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ANIMATED MESH BACKGROUND — Floating gradient orbs */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 600px 600px at 15% 20%, rgba(100, 98, 236, 0.12), transparent 70%),
+    radial-gradient(ellipse 500px 500px at 80% 10%, rgba(88, 230, 255, 0.08), transparent 70%),
+    radial-gradient(ellipse 700px 700px at 50% 80%, rgba(255, 165, 217, 0.06), transparent 70%),
+    radial-gradient(ellipse 400px 400px at 90% 60%, rgba(52, 211, 153, 0.05), transparent 70%);
+  animation: meshShift 20s ease-in-out infinite;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 500px 500px at 70% 40%, rgba(100, 98, 236, 0.08), transparent 70%),
+    radial-gradient(ellipse 600px 600px at 20% 70%, rgba(88, 230, 255, 0.06), transparent 70%);
+  animation: meshShift 25s ease-in-out infinite reverse;
+}
+
+@keyframes meshShift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.02); }
+  50% { transform: translate(-20px, 30px) scale(0.98); }
+  75% { transform: translate(10px, 15px) scale(1.01); }
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
 }
 
@@ -116,16 +150,46 @@ h1, h2, h3, h4, h5, h6 {
    CARD — No borders, ambient shadows
    ============================================= */
 .glass-card {
-  background: var(--surface-card);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
 }
 
 .glass-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(100, 98, 236, 0.06);
+  transform: translateY(-2px);
+  border-color: rgba(165, 165, 255, 0.12);
+}
+
+/* Hover Lift utility */
+.hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.hover-lift:hover { transform: translateY(-3px) scale(1.01); box-shadow: var(--shadow-lg); }
+
+/* Pulse Glow utility */
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(100, 98, 236, 0.08); }
+  50% { box-shadow: 0 0 25px rgba(100, 98, 236, 0.15); }
+}
+
+/* Shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* =============================================
