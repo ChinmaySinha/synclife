@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 const FACTS = [
   "Couples who try new things together are happier.",
@@ -33,13 +34,30 @@ export default function TopBar() {
   return (
     <div className="top-area">
       <h2 className="greeting-text">{greeting} ✨</h2>
-      <div className="trivia-chip" onClick={() => setFact(FACTS[Math.floor(Math.random() * FACTS.length)])}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-pink)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          💡 Did you know?
-        </span>
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
-          {fact}
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="trivia-chip" onClick={() => setFact(FACTS[Math.floor(Math.random() * FACTS.length)])}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-pink)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            💡 Did you know?
+          </span>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: '4px' }}>
+            {fact}
+          </p>
+        </div>
+        <Link href="/profile" style={{ 
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: '42px', height: '42px', borderRadius: '50%', overflow: 'hidden', 
+          border: '2px solid rgba(255,255,255,0.1)', cursor: 'pointer', flexShrink: 0,
+          background: 'var(--surface-card)', textDecoration: 'none',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          {profile?.avatar_url ? (
+             <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+             <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {profile?.name?.charAt(0).toUpperCase() || '👤'}
+             </span>
+          )}
+        </Link>
       </div>
     </div>
   );
