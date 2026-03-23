@@ -260,17 +260,16 @@ export default function PartnerPage() {
                 className="input"
                 placeholder="Paste code here..."
                 value={enterCode}
-                onChange={e => setEnterCode(e.target.value.toUpperCase())}
+                onChange={e => setEnterCode(e.target.value)}
                 style={{ 
                   flex: 1, 
                   textAlign: 'center', 
-                  letterSpacing: '6px', 
+                  letterSpacing: '2px', 
                   fontWeight: 900, 
-                  fontSize: '24px',
+                  fontSize: '18px',
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  textTransform: 'uppercase'
                 }}
               />
               <button 
