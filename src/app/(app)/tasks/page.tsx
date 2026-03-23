@@ -36,7 +36,10 @@ export default function TasksPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('other');
-  const [scheduledTime, setScheduledTime] = useState('');
+  const [hasTime, setHasTime] = useState(false);
+  const [timeHour, setTimeHour] = useState('12');
+  const [timeMinute, setTimeMinute] = useState('00');
+  const [timeAmPm, setTimeAmPm] = useState('PM');
   const [shareWithPartner, setShareWithPartner] = useState(false);
   const [notifyPartner, setNotifyPartner] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -62,7 +65,8 @@ export default function TasksPage() {
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setCategory('other');
-    setScheduledTime(''); setShareWithPartner(false);
+    setHasTime(false); setTimeHour('12'); setTimeMinute('00'); setTimeAmPm('PM');
+    setShareWithPartner(false);
     setNotifyPartner(false); setIsRecurring(false);
     setRecurrenceRule('daily'); setEditingTask(null);
   };
@@ -102,12 +106,21 @@ export default function TasksPage() {
     if (!profile) return;
     setAiWarning(null);
 
+    let schedIso = null;
+    if (hasTime) {
+      let h = parseInt(timeHour, 10);
+      if (timeAmPm === 'PM' && h < 12) h += 12;
+      if (timeAmPm === 'AM' && h === 12) h = 0;
+      const hh = h.toString().padStart(2, '0');
+      schedIso = new Date(`${today}T${hh}:${timeMinute}:00`).toISOString();
+    }
+
     const taskData = {
       user_id: profile.id,
       title: title.trim(),
       description: description.trim() || null,
       category,
-      scheduled_time: scheduledTime ? new Date(`${today}T${scheduledTime}`).toISOString() : null,
+      scheduled_time: schedIso,
       share_with_partner: shareWithPartner,
       notify_partner: notifyPartner,
       is_recurring: isRecurring,
@@ -210,6 +223,18 @@ export default function TasksPage() {
     setTitle(task.title);
     setDescription(task.description || '');
     setCategory(task.category);
+    if (task.scheduled_time) {
+      const d = new Date(task.scheduled_time);
+      let h = d.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      setHasTime(true);
+      setTimeHour(h.toString().padStart(2, '0'));
+      setTimeMinute(d.getMinutes().toString().padStart(2, '0'));
+      setTimeAmPm(ampm);
+    } else {
+      setHasTime(false);
+    }
     setShareWithPartner(task.share_with_partner);
     setNotifyPartner(task.notify_partner);
     setIsRecurring(task.is_recurring);
@@ -373,8 +398,28 @@ export default function TasksPage() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Time</label>
-                  <input className="input" type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} />
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Scheduled Time</span>
+                    <input type="checkbox" checked={hasTime} onChange={e => setHasTime(e.target.checked)} style={{ transform: 'scale(1.2)', cursor: 'pointer' }} />
+                  </label>
+                  {hasTime ? (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeHour} onChange={e => setTimeHour(e.target.value)}>
+                        {Array.from({length: 12}, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => <option key={h} value={h}>{h}</option>)}
+                      </select>
+                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeMinute} onChange={e => setTimeMinute(e.target.value)}>
+                        {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeAmPm} onChange={e => setTimeAmPm(e.target.value)}>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px', color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                      Anytime today
+                    </div>
+                  )}
                 </div>
               </div>
 
