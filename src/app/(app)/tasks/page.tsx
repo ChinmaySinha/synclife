@@ -137,9 +137,16 @@ export default function TasksPage() {
   };
 
   const deleteTask = async (taskId: string) => {
+    if (!confirm('Delete this task?')) return;
+    // Optimistic removal
     setTasks(current => current.filter(t => t.id !== taskId));
     const { error } = await supabase.from('tasks').delete().eq('id', taskId);
-    if (error) loadTasks();
+    if (error) {
+      console.error('Delete failed:', error.message);
+      alert('Could not delete task. Please try again.');
+    }
+    // Always reload to ensure sync
+    loadTasks();
   };
 
   const toggleTask = async (task: Task) => {

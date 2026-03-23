@@ -106,6 +106,32 @@ body {
   overflow-x: hidden;
 }
 
+/* Force native form controls to render with dark-mode colors (macOS Safari fix) */
+input[type="time"],
+input[type="date"],
+input[type="datetime-local"] {
+  color: var(--text-primary, #e8e6f0);
+  background: var(--surface-card, #14141c);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md, 12px);
+  padding: 10px 14px;
+  font-size: 14px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(0.8);
+  cursor: pointer;
+}
+input[type="time"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit {
+  color: var(--text-primary, #e8e6f0);
+}
+
+
 /* === ANIMATED MESH BACKGROUND === */
 body::before {
   content: '';
