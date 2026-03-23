@@ -14,9 +14,10 @@ export default function TasksPage() {
   const { profile, partner } = useAuth();
   const [isPending, startTransition] = useTransition();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setTime(new Date()); // hydrate on client only
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
@@ -145,7 +146,7 @@ export default function TasksPage() {
     const newCompleted = !task.is_completed;
     const nowStr = new Date().toISOString();
 
-    setTasks(current => current.map(t => 
+    setTasks(current => current.map(t =>
       t.id === task.id ? { ...t, is_completed: newCompleted, completed_at: newCompleted ? nowStr : null } : t
     ));
 
@@ -224,9 +225,11 @@ export default function TasksPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>📋 Tasks</h1>
-            <span suppressHydrationWarning style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>
-              It's {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
-            </span>
+            {time && (
+              <span suppressHydrationWarning style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                It's {time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
+              </span>
+            )}
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
             {tasks.filter(t => t.is_completed).length}/{tasks.length} completed today
@@ -244,7 +247,7 @@ export default function TasksPage() {
             key={c}
             onClick={() => startTransition(() => setFilter(c))}
             className={`btn btn-sm ${filter === c ? 'btn-primary' : ''}`}
-            style={{ 
+            style={{
               opacity: isPending && filter !== c ? 0.7 : 1,
               background: filter === c ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
               border: 'none'
@@ -443,8 +446,8 @@ export default function TasksPage() {
               <button onClick={proceedWithSave} className="btn btn-danger" style={{ fontWeight: 600 }}>
                 Add it anyway 😎
               </button>
-              <button 
-                onClick={() => { setAiWarning(null); setShowForm(false); resetForm(); }} 
+              <button
+                onClick={() => { setAiWarning(null); setShowForm(false); resetForm(); }}
                 className="btn btn-secondary"
               >
                 You're right, nevermind 😅
