@@ -37,9 +37,7 @@ export default function TasksPage() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('other');
   const [hasTime, setHasTime] = useState(false);
-  const [timeHour, setTimeHour] = useState('12');
-  const [timeMinute, setTimeMinute] = useState('00');
-  const [timeAmPm, setTimeAmPm] = useState('PM');
+  const [scheduledTime, setScheduledTime] = useState('');
   const [shareWithPartner, setShareWithPartner] = useState(false);
   const [notifyPartner, setNotifyPartner] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -65,7 +63,7 @@ export default function TasksPage() {
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setCategory('other');
-    setHasTime(false); setTimeHour('12'); setTimeMinute('00'); setTimeAmPm('PM');
+    setHasTime(false); setScheduledTime('');
     setShareWithPartner(false);
     setNotifyPartner(false); setIsRecurring(false);
     setRecurrenceRule('daily'); setEditingTask(null);
@@ -107,12 +105,11 @@ export default function TasksPage() {
     setAiWarning(null);
 
     let schedIso = null;
-    if (hasTime) {
-      let h = parseInt(timeHour, 10);
-      if (timeAmPm === 'PM' && h < 12) h += 12;
-      if (timeAmPm === 'AM' && h === 12) h = 0;
-      const hh = h.toString().padStart(2, '0');
-      schedIso = new Date(`${today}T${hh}:${timeMinute}:00`).toISOString();
+    if (hasTime && scheduledTime.includes(':')) {
+      const [hh, mm] = scheduledTime.split(':');
+      if (hh && mm) {
+        schedIso = new Date(`${today}T${hh.padStart(2, '0')}:${mm.padStart(2, '0')}:00`).toISOString();
+      }
     }
 
     const taskData = {
@@ -225,15 +222,11 @@ export default function TasksPage() {
     setCategory(task.category);
     if (task.scheduled_time) {
       const d = new Date(task.scheduled_time);
-      let h = d.getHours();
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
       setHasTime(true);
-      setTimeHour(h.toString().padStart(2, '0'));
-      setTimeMinute(d.getMinutes().toString().padStart(2, '0'));
-      setTimeAmPm(ampm);
+      setScheduledTime(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
     } else {
       setHasTime(false);
+      setScheduledTime('');
     }
     setShareWithPartner(task.share_with_partner);
     setNotifyPartner(task.notify_partner);
@@ -399,22 +392,23 @@ export default function TasksPage() {
                 </div>
                 <div className="form-group">
                   <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Scheduled Time</span>
+                    <span>Scheduled Time (24h)</span>
                     <input type="checkbox" checked={hasTime} onChange={e => setHasTime(e.target.checked)} style={{ transform: 'scale(1.2)', cursor: 'pointer' }} />
                   </label>
                   {hasTime ? (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeHour} onChange={e => setTimeHour(e.target.value)}>
-                        {Array.from({length: 12}, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => <option key={h} value={h}>{h}</option>)}
-                      </select>
-                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeMinute} onChange={e => setTimeMinute(e.target.value)}>
-                        {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                      <select className="input select" style={{ flex: 1, padding: '10px' }} value={timeAmPm} onChange={e => setTimeAmPm(e.target.value)}>
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
+                    <input 
+                      type="text" 
+                      className="input" 
+                      placeholder="e.g. 14:30" 
+                      value={scheduledTime} 
+                      onChange={e => {
+                        let val = e.target.value.replace(/[^\d:]/g, '');
+                        if (val.length === 2 && !val.includes(':') && scheduledTime.length !== 3) {
+                          val = val + ':';
+                        }
+                        setScheduledTime(val.slice(0, 5));
+                      }} 
+                    />
                   ) : (
                     <div style={{ padding: '10px', color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
                       Anytime today
